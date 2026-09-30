@@ -49,7 +49,7 @@ pub struct StrongCoupling {
         }
     })]
     order: usize,
-    #[builder(into, default = OrderedFloat(1e-15))]
+    #[builder(into, default = OrderedFloat(1e-16))]
     precision: F64,
     #[builder(default = 30)]
     max_iter: usize,
