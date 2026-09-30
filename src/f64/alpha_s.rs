@@ -122,31 +122,31 @@ fn get_residues(b: &[F64]) -> [[C64; 2]; MAX_LOOP_ORDER - 1] {
     let roots: [Complex<f64>; _] = get_roots(b).map(|c| c.into());
 
     let mut res = [[C64::from(0.); 2]; MAX_LOOP_ORDER - 1];
-    for (n, αsi) in roots.into_iter().enumerate().take(b.len() - 1) {
+    for (n, α_s_i) in roots.into_iter().enumerate().take(b.len() - 1) {
         let mut b1_num = Complex::from(0.);
-        let mut αsi_pow = Complex::from(1.);
+        let mut α_s_i_pow = Complex::from(1.);
         for bi in &b[1..] {
-            b1_num += bi.0 * αsi_pow;
-            αsi_pow *= αsi;
+            b1_num += bi.0 * α_s_i_pow;
+            α_s_i_pow *= α_s_i;
         }
 
         let mut b0_num = Complex::from(0.);
-        let mut αsi_pow = Complex::from(1.);
+        let mut α_s_i_pow = Complex::from(1.);
         for bi in &b[2..] {
-            b0_num += bi.0 * αsi_pow;
-            αsi_pow *= αsi;
+            b0_num += bi.0 * α_s_i_pow;
+            α_s_i_pow *= α_s_i;
         }
 
         let num = b[1].0 * b1_num - b[0].0 * b0_num;
 
         let mut den = Complex::from(0.);
-        let mut αsi_pow = Complex::from(1.);
+        let mut α_s_i_pow = Complex::from(1.);
         for (n, bi) in b.iter().enumerate().skip(1) {
-            den += (n as f64) * bi.0 * αsi_pow;
-            αsi_pow *= αsi;
+            den += (n as f64) * bi.0 * α_s_i_pow;
+            α_s_i_pow *= α_s_i;
         }
 
-        res[n][0] = αsi.into();
+        res[n][0] = α_s_i.into();
         res[n][1] = (num / den).into();
     }
     res
@@ -166,18 +166,18 @@ impl StrongCoupling {
     /// Return the value at the given scale
     pub fn at(&self, μ: f64) -> f64 {
         assert_eq!(MAX_LOOP_ORDER, 5);
-        let αs0 = f64::from(self.value);
+        let α_s_0 = f64::from(self.value);
         let μ0 = f64::from(self.μ);
         let log_μ2 = (μ / μ0).ln() * 2.;
         let b = self.b.map(f64::from);
         let residues = self.residues.map(|r| r.map(Complex::from));
         match self.order {
-            0 => αs0,
-            1 => αs0 / (1. + αs0 * b[0] * log_μ2),
+            0 => α_s_0,
+            1 => α_s_0 / (1. + α_s_0 * b[0] * log_μ2),
             o => {
                 let b = &b[..o];
                 let residues = &residues[..o - 1];
-                let residue_sum_αs0 = residue_sum(αs0, residues, b);
+                let residue_sum_α_s_0 = residue_sum(α_s_0, residues, b);
                 let mut convergency = SimpleConvergency {
                     eps: self.precision.into(),
                     max_iter: self.max_iter,
@@ -185,7 +185,16 @@ impl StrongCoupling {
                 roots::find_root_secant(
                     1e-100,
                     1.,
-                    |αs| αs_eq(αs, αs0, b, residues, log_μ2, residue_sum_αs0),
+                    |α_s| {
+                        α_s_eq(
+                            α_s,
+                            α_s_0,
+                            b,
+                            residues,
+                            log_μ2,
+                            residue_sum_α_s_0,
+                        )
+                    },
                     &mut convergency,
                 )
                 .expect("Failed to find strong coupling")
@@ -195,10 +204,10 @@ impl StrongCoupling {
 
     /// Evolve to the given scale
     pub fn evolve(&mut self, μ: f64) -> f64 {
-        let αs = self.at(μ);
-        self.value = OrderedFloat(αs);
+        let α_s = self.at(μ);
+        self.value = OrderedFloat(α_s);
         self.μ = OrderedFloat(μ);
-        αs
+        α_s
     }
 
     /// Evolve to the given scale and remove the quark with mass m from the theory
@@ -220,27 +229,30 @@ impl StrongCoupling {
     }
 }
 
-fn αs_eq(
-    αs: f64,
-    αs0: f64,
+fn α_s_eq(
+    α_s: f64,
+    α_s_0: f64,
     b: &[f64],
     residues: &[[Complex<f64>; 2]],
     log_μ2: f64,
-    residue_sum_αs0: f64,
+    residue_sum_α_s_0: f64,
 ) -> f64 {
     assert!(b.len() > 1);
-    (αs - αs0) * b[0]
-        + αs * αs0
+    (α_s - α_s_0) * b[0]
+        + α_s
+            * α_s_0
             * (log_μ2 * b[0] * b[0]
-                + b[1] * (αs0 / αs).ln()
-                + residue_sum(αs, residues, b)
-                - residue_sum_αs0)
+                + b[1] * (α_s_0 / α_s).ln()
+                + residue_sum(α_s, residues, b)
+                - residue_sum_α_s_0)
 }
 
-fn residue_sum(αs: f64, residues: &[[Complex<f64>; 2]], b: &[f64]) -> f64 {
+fn residue_sum(α_s: f64, residues: &[[Complex<f64>; 2]], b: &[f64]) -> f64 {
     assert_eq!(b.len(), residues.len() + 1);
-    let res: Complex<_> =
-        residues.iter().map(|[αsi, r]| (αs - *αsi).ln() * r).sum();
+    let res: Complex<_> = residues
+        .iter()
+        .map(|[α_s_i, r]| (α_s - *α_s_i).ln() * r)
+        .sum();
     res.re
 }
 
@@ -281,23 +293,23 @@ mod tests {
         const EP_HIGH: f64 = 10.;
         const EP_LOW: f64 = 1e-3;
         for order in 1..=5 {
-            let mut αs0 =
+            let mut α_s_0 =
                 StrongCoupling::builder().order(order).unwrap().build();
-            let nf = αs0.nf;
+            let nf = α_s_0.nf;
 
             let μ_high = 100_000.;
-            let αs_high = αs0.at(μ_high);
-            let μdμ_αs_high = μ_high * d(|μ| αs0.at(μ), μ_high, EP_HIGH);
-            let rge_rhs_high = 2. * β(order, nf, αs_high) * αs_high;
-            assert!((μdμ_αs_high - rge_rhs_high).abs() < 2e-13);
+            let α_s_high = α_s_0.at(μ_high);
+            let μdμ_α_s_high = μ_high * d(|μ| α_s_0.at(μ), μ_high, EP_HIGH);
+            let rge_rhs_high = 2. * β(order, nf, α_s_high) * α_s_high;
+            assert!((μdμ_α_s_high - rge_rhs_high).abs() < 2e-13);
 
-            αs0.evolve(μ_high);
+            α_s_0.evolve(μ_high);
 
             let μ_low = 1.;
-            let αs_low = αs0.at(μ_low);
-            let μdμ_αs_low = μ_low * d(|μ| αs0.at(μ), μ_low, EP_LOW);
-            let rge_rhs_low = 2. * β(order, nf, αs_low) * αs_low;
-            assert!((μdμ_αs_low - rge_rhs_low).abs() < 3e-12);
+            let α_s_low = α_s_0.at(μ_low);
+            let μdμ_α_s_low = μ_low * d(|μ| α_s_0.at(μ), μ_low, EP_LOW);
+            let rge_rhs_low = 2. * β(order, nf, α_s_low) * α_s_low;
+            assert!((μdμ_α_s_low - rge_rhs_low).abs() < 3e-12);
         }
     }
 }

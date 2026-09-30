@@ -81,7 +81,7 @@ const fn max_nf_pow(order: usize) -> usize {
 
 /// Perturbative coefficient of the QCD β function
 ///
-/// The coefficients are defined by β = -Σ βi (αs/π)^(i+1)
+/// The coefficients are defined by β = -Σ βi (α_s/π)^(i+1)
 pub const fn βi(i: usize, nf: i32) -> f64 {
     let beta_coeff = &BETA_COEFFS[i];
     let mut nf_coeff = max_nf_pow(i);
@@ -95,16 +95,16 @@ pub const fn βi(i: usize, nf: i32) -> f64 {
 }
 
 /// The QCD β function to the given loop order
-pub const fn β(order: usize, nf: i32, αs: f64) -> f64 {
+pub const fn β(order: usize, nf: i32, α_s: f64) -> f64 {
     if order == 0 {
         return 0.;
     }
     let mut i = order - 1;
-    let mut res = -βi(i, nf) * (αs / PI);
+    let mut res = -βi(i, nf) * (α_s / PI);
     while i > 0 {
         i -= 1;
         res -= βi(i, nf);
-        res *= αs / PI;
+        res *= α_s / PI;
     }
     res
 }
