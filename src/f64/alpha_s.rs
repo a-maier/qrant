@@ -306,7 +306,7 @@ mod tests {
             dbg!(μdμ_αs_high - μdμ_αs_high);
             let rge_rhs_high = 2. * β(order, nf, αs_high) * αs_high;
             dbg!(rge_rhs_high - μdμ_αs_high);
-            // assert!((μdμ_αs_high - rge_rhs_high).abs() < 1e-16);
+            assert!((μdμ_αs_high - rge_rhs_high).abs() < 2e-13);
 
             dbg!(αs0.at(1.));
             αs0.evolve(μ_high);
@@ -320,7 +320,7 @@ mod tests {
             let rge_rhs_low = 2. * β(order, nf, αs_low) * αs_low;
             dbg!(rge_rhs_low);
             dbg!(rge_rhs_low - μdμ_αs_low);
-            // assert!((μdμ_αs_low - rge_rhs_low).abs() < 1e-16);
+            assert!((μdμ_αs_low - rge_rhs_low).abs() < 3e-12);
         }
     }
 }
