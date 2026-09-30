@@ -1,22 +1,20 @@
 use std::{
     f64::consts::PI,
     fmt::Display,
-    ops::{Add, Div, Mul, RangeInclusive, Sub},
+    ops::RangeInclusive,
 };
 
 use bon::Builder;
-use hyperdual::Dual;
 use num_complex::{Complex, Complex64};
 use ordered_float::OrderedFloat;
 use roots::{
-    FloatType,
     Roots::{One, Two},
     SimpleConvergency, find_roots_cubic, find_roots_quartic,
 };
 
 use crate::{beta::βi, complex::C64};
 
-use super::{F64, beta::MAX_LOOP_ORDER, dual_wrapper::D64};
+use super::{F64, beta::MAX_LOOP_ORDER};
 
 /// Z boson mass in GeV
 pub const MZ: f64 = 91.1879;
@@ -166,18 +164,7 @@ fn gen_b_arr(nf: i32, order: usize) -> [F64; MAX_LOOP_ORDER] {
 
 impl StrongCoupling {
     /// Return the value at the given scale
-    pub fn at<F>(&self, μ: F) -> F
-    where
-        F: Add<f64, Output = F>
-            + Div<f64, Output = F>
-            + Mul<f64, Output = F>
-            + From<f64>
-            + Div<Output = F>
-            + Mul<Output = F>
-            + AlphaSEq
-            + FloatType
-            + Ln,
-    {
+    pub fn at(&self, μ: f64) -> f64 {
         assert_eq!(MAX_LOOP_ORDER, 5);
         let αs0 = f64::from(self.value);
         let μ0 = f64::from(self.μ);
@@ -185,17 +172,17 @@ impl StrongCoupling {
         let b = self.b.map(f64::from);
         let residues = self.residues.map(|r| r.map(Complex::from));
         match self.order {
-            0 => F::from(αs0),
-            1 => F::from(αs0) / (log_μ2 * αs0 * b[0] + 1.),
+            0 => αs0,
+            1 => αs0 / (1. + αs0 * b[0] * log_μ2),
             o => {
                 let mut convergency = SimpleConvergency {
-                    eps: F::from(1e-15),
+                    eps: 1e-15,
                     max_iter: 30,
                 };
                 roots::find_root_brent(
-                    F::from(1e-100),
-                    F::from(1.),
-                    |αs| αs.αs_eq(αs0, &b[..o], &residues[..o - 1], log_μ2),
+                    1e-100,
+                    1.,
+                    |αs| αs_eq(αs, αs0, &b[..o], &residues[..o - 1], log_μ2),
                     &mut convergency,
                 )
                 .expect("Failed to find strong coupling")
@@ -230,129 +217,33 @@ impl StrongCoupling {
     }
 }
 
-pub trait AlphaSEq {
-    fn αs_eq(
-        self,
-        αs0: f64,
-        b: &[f64],
-        residues: &[[Complex<f64>; 2]],
-        log_μ2: Self,
-    ) -> Self;
-
-    fn residue_sum(self, residues: &[[Complex<f64>; 2]], b: &[f64]) -> Self;
+fn αs_eq(
+    αs: f64,
+    αs0: f64,
+    b: &[f64],
+    residues: &[[Complex<f64>; 2]],
+    log_μ2: f64,
+) -> f64 {
+    assert!(b.len() > 1);
+    (αs - αs0) * b[0]
+        + αs * αs0
+        * (log_μ2 * b[0] * b[0]
+           + b[1] * (αs0 / αs).ln()
+           + residue_sum(αs, residues, b)
+           - residue_sum(αs0, residues, b))
 }
 
-pub trait Ln {
-    fn ln(self) -> Self;
-}
-
-trait LnTimes: Ln {
-    fn ln_times(self, r: Complex<f64>) -> Self;
-}
-
-macro_rules! impl_alphas_eq {
-    ($t:ty) => {
-        impl AlphaSEq for $t {
-            fn αs_eq(
-                self,
-                αs0: f64,
-                b: &[f64],
-                residues: &[[Complex<f64>; 2]],
-                log_μ2: Self,
-            ) -> Self {
-                let αs = self;
-                assert!(b.len() > 1);
-                (αs - αs0) * b[0]
-                    + αs * αs0
-                        * (log_μ2 * b[0] * b[0]
-                            + b[1] * (αs0 / αs).ln()
-                            + αs.residue_sum(residues, b)
-                            - αs0.residue_sum(residues, b))
-            }
-
-            fn residue_sum(
-                self,
-                residues: &[[Complex<f64>; 2]],
-                b: &[f64],
-            ) -> $t {
-                let αs = self;
-                assert_eq!(b.len(), residues.len() + 1);
-                let res: Complex<$t> = residues
-                    .iter()
-                    .map(|[αsi, r]| LnTimes::ln_times(αs - *αsi, *r))
-                    .reduce(|a, b| Complex {
-                        re: a.re + b.re,
-                        im: a.im + b.im,
-                    })
-                    .unwrap();
-                res.re
-            }
-        }
-    };
-}
-
-impl_alphas_eq!(f64);
-impl_alphas_eq!(D64);
-
-impl Ln for Complex<f64> {
-    fn ln(self) -> Self {
-        <Complex<f64>>::ln(self)
-    }
-}
-
-impl LnTimes for Complex<f64> {
-    fn ln_times(self, r: Complex<f64>) -> Self {
-        self.ln() * r
-    }
-}
-
-impl Ln for f64 {
-    fn ln(self) -> Self {
-        f64::ln(self)
-    }
-}
-
-impl Sub<Complex<f64>> for D64 {
-    type Output = Complex<D64>;
-
-    fn sub(self, rhs: Complex<f64>) -> Self::Output {
-        let Complex { re, im } = rhs;
-        let [re, im] = [re, im].map(D64::from);
-        Complex { re, im }
-    }
-}
-
-impl Ln for Complex<D64> {
-    fn ln(self) -> Self {
-        let Complex { re, im } = self;
-        let re = re.0;
-        let im = im.0;
-        let Complex { re, im } = Complex { re, im }.ln();
-        let [re, im] = [re, im].map(D64);
-        Complex { re, im }
-    }
-}
-
-impl Ln for D64 {
-    fn ln(self) -> Self {
-        D64::ln(self)
-    }
-}
-
-impl LnTimes for Complex<D64> {
-    fn ln_times(self, r: Complex<f64>) -> Self {
-        let Complex { re, im } = self.ln();
-        let [re, im] = [re, im].map(|x| x.0);
-        let ln = Complex { re, im };
-
-        let Complex { re, im } = r;
-        let [re, im] = [re, im].map(Dual::from);
-        let r = Complex { re, im };
-
-        let Complex { re, im } = ln * r;
-        let [re, im] = [re, im].map(D64);
-        Complex { re, im }
-    }
+fn residue_sum(
+    αs: f64,
+    residues: &[[Complex<f64>; 2]],
+    b: &[f64],
+) -> f64 {
+    assert_eq!(b.len(), residues.len() + 1);
+    let res: Complex<_> = residues
+        .iter()
+        .map(|[αsi, r]| (αs - *αsi).ln() *r)
+        .sum();
+    res.re
 }
 
 /// An out-of-range value
@@ -373,112 +264,6 @@ impl<T: Display> Display for OutOfRange<T> {
             range.start(),
             range.end()
         )
-    }
-}
-
-pub trait PowI {
-    fn powi(self, n: i32) -> Self;
-}
-
-#[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Ord, PartialOrd, Hash)]
-struct F<T>(T);
-
-macro_rules! impl_f {
-    ($t:ty) => {
-        impl Mul for F<$t> {
-            type Output = Self;
-
-            fn mul(self, rhs: Self) -> Self::Output {
-                Self(self.0.mul(rhs.0))
-            }
-        }
-
-        impl Mul<f64> for F<$t> {
-            type Output = Self;
-
-            fn mul(self, rhs: f64) -> Self::Output {
-                Self(self.0.mul(rhs))
-            }
-        }
-
-        impl Mul<F<$t>> for f64 {
-            type Output = F<$t>;
-
-            fn mul(self, rhs: F<$t>) -> Self::Output {
-                F(rhs.0.mul(self))
-            }
-        }
-
-        impl Add for F<$t> {
-            type Output = Self;
-
-            fn add(self, rhs: Self) -> Self::Output {
-                Self(self.0.add(rhs.0))
-            }
-        }
-
-        impl Add<f64> for F<$t> {
-            type Output = Self;
-
-            fn add(self, rhs: f64) -> Self::Output {
-                Self(self.0.add(rhs))
-            }
-        }
-
-        impl Add<F<$t>> for f64 {
-            type Output = F<$t>;
-
-            fn add(self, rhs: F<$t>) -> Self::Output {
-                F(rhs.0.add(self))
-            }
-        }
-
-        impl Sub for F<$t> {
-            type Output = Self;
-
-            fn sub(self, rhs: Self) -> Self::Output {
-                Self(self.0.sub(rhs.0))
-            }
-        }
-
-        impl Sub<f64> for F<$t> {
-            type Output = Self;
-
-            fn sub(self, rhs: f64) -> Self::Output {
-                Self(self.0.sub(rhs))
-            }
-        }
-
-        impl Sub<F<$t>> for f64 {
-            type Output = F<$t>;
-
-            fn sub(self, rhs: F<$t>) -> Self::Output {
-                F(-rhs.0.sub(self))
-            }
-        }
-
-        impl Div for F<$t> {
-            type Output = Self;
-
-            fn div(self, rhs: F<$t>) -> Self::Output {
-                F(self.0.div(rhs.0))
-            }
-        }
-    };
-}
-
-impl_f!(f64);
-impl_f!(Dual<f64>);
-
-impl PowI for F<f64> {
-    fn powi(self, n: i32) -> Self {
-        F(f64::powi(self.0, n))
-    }
-}
-
-impl PowI for F<Dual<f64>> {
-    fn powi(self, n: i32) -> Self {
-        F(hyperdual::Float::powi(self.0, n))
     }
 }
 
@@ -512,15 +297,11 @@ mod tests {
             let μ_high = 100_000.;
             let αs_high = αs0.at(μ_high);
             dbg!(αs_high);
-            let μdμ_αs_high = μ_high
-                * hyperdual::differentiate(μ_high, |μ| αs0.at(D64(μ)).0);
+            let μdμ_αs_high = μ_high * d(|μ| αs0.at(μ), μ_high, EP_HIGH);
             dbg!(μdμ_αs_high);
-            //let μdμ_αs_high_alt = μ_high * (αs0.at(μ_high + EP) - αs0.at(μ_high - EP))/(2. * EP);
-            let μdμ_αs_high_alt = μ_high * d(|μ| αs0.at(μ), μ_high, EP_HIGH);
-            dbg!(μdμ_αs_high_alt);
-            dbg!(μdμ_αs_high - μdμ_αs_high_alt);
+            dbg!(μdμ_αs_high - μdμ_αs_high);
             let rge_rhs_high = 2. * β(order, nf, αs_high) * αs_high;
-            dbg!(rge_rhs_high - μdμ_αs_high_alt);
+            dbg!(rge_rhs_high - μdμ_αs_high);
             // assert!((μdμ_αs_high - rge_rhs_high).abs() < 1e-16);
 
             dbg!(αs0.at(1.));
@@ -529,15 +310,12 @@ mod tests {
             let μ_low = 1.;
             let αs_low = αs0.at(μ_low);
             dbg!(αs_low);
-            let μdμ_αs_low =
-                μ_low * hyperdual::differentiate(μ_low, |μ| αs0.at(D64(μ)).0);
+            let μdμ_αs_low = μ_low * d(|μ| αs0.at(μ), μ_low, EP_LOW);
             dbg!(μdμ_αs_low);
-            let μdμ_αs_low_alt = μ_low * d(|μ| αs0.at(μ), μ_low, EP_LOW);
-            dbg!(μdμ_αs_low_alt);
-            dbg!(μdμ_αs_low - μdμ_αs_low_alt);
+            dbg!(μdμ_αs_low - μdμ_αs_low);
             let rge_rhs_low = 2. * β(order, nf, αs_low) * αs_low;
             dbg!(rge_rhs_low);
-            dbg!(rge_rhs_low - μdμ_αs_low_alt);
+            dbg!(rge_rhs_low - μdμ_αs_low);
             // assert!((μdμ_αs_low - rge_rhs_low).abs() < 1e-16);
         }
     }

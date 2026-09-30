@@ -12,7 +12,6 @@ repository = "https://github.com/a-maier/qrant"
 
 [dependencies]
 bon = "3.10.1"
-hyperdual = "1.5.0"
 num-complex = "0.4.6"
 ordered-float = "5.5.0"
 roots = "0.0.8"
