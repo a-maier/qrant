@@ -175,6 +175,9 @@ impl StrongCoupling {
             0 => αs0,
             1 => αs0 / (1. + αs0 * b[0] * log_μ2),
             o => {
+                let b = &b[..o];
+                let residues = &residues[..o - 1];
+                let residue_sum_αs0 = residue_sum(αs0, residues, b);
                 let mut convergency = SimpleConvergency {
                     eps: 1e-15,
                     max_iter: 30,
@@ -182,7 +185,7 @@ impl StrongCoupling {
                 roots::find_root_brent(
                     1e-100,
                     1.,
-                    |αs| αs_eq(αs, αs0, &b[..o], &residues[..o - 1], log_μ2),
+                    |αs| αs_eq(αs, αs0, b, residues, log_μ2, residue_sum_αs0),
                     &mut convergency,
                 )
                 .expect("Failed to find strong coupling")
@@ -223,6 +226,7 @@ fn αs_eq(
     b: &[f64],
     residues: &[[Complex<f64>; 2]],
     log_μ2: f64,
+    residue_sum_αs0: f64,
 ) -> f64 {
     assert!(b.len() > 1);
     (αs - αs0) * b[0]
@@ -230,7 +234,7 @@ fn αs_eq(
         * (log_μ2 * b[0] * b[0]
            + b[1] * (αs0 / αs).ln()
            + residue_sum(αs, residues, b)
-           - residue_sum(αs0, residues, b))
+           - residue_sum_αs0)
 }
 
 fn residue_sum(
