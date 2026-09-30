@@ -65,6 +65,7 @@ pub(crate) const BETA_43: f64 = (-630559. / 5832. - 48722. / 243. * ZETA_3
 
 pub(crate) const BETA_44: f64 = (1205. / 2916. - 152. / 81. * ZETA_3) / 1024.;
 
+/// Loop order to which the QCD β function is implemented.
 pub const MAX_LOOP_ORDER: usize = 5;
 
 pub(crate) const BETA_COEFFS: [[f64; MAX_LOOP_ORDER]; MAX_LOOP_ORDER] = [
@@ -79,9 +80,9 @@ const fn max_nf_pow(order: usize) -> usize {
     if order < 2 { 1 } else { order - 1 }
 }
 
-/// Perturbative coefficient of the QCD β function
+/// Perturbative coefficient of the QCD β function.
 ///
-/// The coefficients are defined by β = -Σ βi (α_s/π)^(i+1)
+/// The coefficients are defined by β = -Σ βi (α_s/π)^(i+1).
 pub const fn βi(i: usize, nf: i32) -> f64 {
     let beta_coeff = &BETA_COEFFS[i];
     let mut nf_coeff = max_nf_pow(i);
@@ -94,7 +95,7 @@ pub const fn βi(i: usize, nf: i32) -> f64 {
     res
 }
 
-/// The QCD β function to the given loop order
+/// The QCD β function to the given loop order.
 pub const fn β(order: usize, nf: i32, α_s: f64) -> f64 {
     if order == 0 {
         return 0.;

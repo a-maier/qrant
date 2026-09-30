@@ -33,14 +33,21 @@ pub fn α_s(nf: i32, μ: f64) -> f64 {
     todo!()
 }
 
+/// The strong coupling
 #[derive(Builder, Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct StrongCoupling {
+    /// Initial value of the strong coupling.
     #[builder(into, default = OrderedFloat(ALPHA_S_MZ))]
     value: F64,
+    /// Scale of the initial strong coupling value in GeV.
     #[builder(into, default = OrderedFloat(MZ))]
     μ: F64,
+    /// Initial number of active quark flavours.
     #[builder(default = 5)]
     nf: i32,
+    /// Loop order used for coupling evolution.
+    ///
+    /// The argument must not be larger than [MAX_LOOP_ORDER].
     #[builder(default = MAX_LOOP_ORDER, with = |o: usize| -> Result<_, OutOfRange<usize>> {
         if o <= MAX_LOOP_ORDER {
             Ok(o)
@@ -49,8 +56,10 @@ pub struct StrongCoupling {
         }
     })]
     order: usize,
+    /// Numerical precision for the evolution.
     #[builder(into, default = OrderedFloat(1e-16))]
     precision: F64,
+    /// Maximum number of iterations used in the evolution.
     #[builder(default = 30)]
     max_iter: usize,
     #[builder(skip = gen_b_arr(nf, order))]
@@ -163,7 +172,7 @@ fn gen_b_arr(nf: i32, order: usize) -> [F64; MAX_LOOP_ORDER] {
 }
 
 impl StrongCoupling {
-    /// Return the value at the given scale
+    /// Return the coupling value at the given scale in GeV.
     pub fn at(&self, μ: f64) -> f64 {
         assert_eq!(MAX_LOOP_ORDER, 5);
         let α_s_0 = f64::from(self.value);
@@ -202,7 +211,10 @@ impl StrongCoupling {
         }
     }
 
-    /// Evolve to the given scale
+    /// Evolve to the given scale in GeV.
+    ///
+    /// All further calls to [evolve](Self::evolve) and [at](Self::at)
+    /// will start from the new scale.
     pub fn evolve(&mut self, μ: f64) -> f64 {
         let α_s = self.at(μ);
         self.value = OrderedFloat(α_s);
@@ -210,20 +222,22 @@ impl StrongCoupling {
         α_s
     }
 
-    /// Evolve to the given scale and remove the quark with mass m from the theory
+    /// Evolve to the given scale and remove the quark with mass m from the theory.
     pub const fn decouple_down(&mut self, μ: f64) {
         todo!()
     }
 
-    /// Evolve to the given scale and add the quark with mass m to the theory
+    /// Evolve to the given scale and add the quark with mass m to the theory.
     pub const fn decouple_up(&mut self, μ: f64) {
         todo!()
     }
 
+    /// Get the current number of active quark flavours.
     pub fn nf(&self) -> i32 {
         self.nf
     }
 
+    /// Get the loop order used for evolution.
     pub fn order(&self) -> usize {
         self.order
     }
