@@ -1,8 +1,4 @@
-use std::{
-    f64::consts::PI,
-    fmt::Display,
-    ops::RangeInclusive,
-};
+use std::{f64::consts::PI, fmt::Display, ops::RangeInclusive};
 
 use bon::Builder;
 use num_complex::{Complex, Complex64};
@@ -231,22 +227,16 @@ fn αs_eq(
     assert!(b.len() > 1);
     (αs - αs0) * b[0]
         + αs * αs0
-        * (log_μ2 * b[0] * b[0]
-           + b[1] * (αs0 / αs).ln()
-           + residue_sum(αs, residues, b)
-           - residue_sum_αs0)
+            * (log_μ2 * b[0] * b[0]
+                + b[1] * (αs0 / αs).ln()
+                + residue_sum(αs, residues, b)
+                - residue_sum_αs0)
 }
 
-fn residue_sum(
-    αs: f64,
-    residues: &[[Complex<f64>; 2]],
-    b: &[f64],
-) -> f64 {
+fn residue_sum(αs: f64, residues: &[[Complex<f64>; 2]], b: &[f64]) -> f64 {
     assert_eq!(b.len(), residues.len() + 1);
-    let res: Complex<_> = residues
-        .iter()
-        .map(|[αsi, r]| (αs - *αsi).ln() *r)
-        .sum();
+    let res: Complex<_> =
+        residues.iter().map(|[αsi, r]| (αs - *αsi).ln() * r).sum();
     res.re
 }
 
@@ -278,12 +268,8 @@ mod tests {
     use super::*;
 
     fn d(mut f: impl FnMut(f64) -> f64, x: f64, ε: f64) -> f64 {
-        (
-            -f(x + 2.*ε)
-                + 8.*f(x + ε)
-                - 8.*f(x - ε)
-                + f(x - 2.*ε)
-        )/(12. * ε)
+        (-f(x + 2. * ε) + 8. * f(x + ε) - 8. * f(x - ε) + f(x - 2. * ε))
+            / (12. * ε)
     }
 
     #[test]
