@@ -49,6 +49,10 @@ pub struct StrongCoupling {
         }
     })]
     order: usize,
+    #[builder(into, default = OrderedFloat(1e-15))]
+    precision: F64,
+    #[builder(default = 30)]
+    max_iter: usize,
     #[builder(skip = gen_b_arr(nf, order))]
     b: [F64; MAX_LOOP_ORDER],
     #[builder(skip = get_residues(&b[..order]))]
@@ -175,8 +179,8 @@ impl StrongCoupling {
                 let residues = &residues[..o - 1];
                 let residue_sum_αs0 = residue_sum(αs0, residues, b);
                 let mut convergency = SimpleConvergency {
-                    eps: 1e-15,
-                    max_iter: 30,
+                    eps: self.precision.into(),
+                    max_iter: self.max_iter,
                 };
                 roots::find_root_brent(
                     1e-100,
