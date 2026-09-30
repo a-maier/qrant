@@ -109,7 +109,7 @@ fn get_roots(c: &[F64]) -> [C64; MAX_LOOP_ORDER - 1] {
         }
         _ => unreachable!(),
     }
-    dbg!(roots)
+    roots
 }
 
 fn roots2(c: [f64; 3]) -> [Complex64; 2] {
@@ -159,7 +159,7 @@ fn gen_b_arr(nf: i32, order: usize) -> [F64; MAX_LOOP_ORDER] {
         *b = (βi(i, nf) * pi_pow).into();
         pi_pow /= PI;
     }
-    dbg!(b)
+    b
 }
 
 impl StrongCoupling {
@@ -291,35 +291,22 @@ mod tests {
         const EP_HIGH: f64 = 10.;
         const EP_LOW: f64 = 1e-3;
         for order in 1..=5 {
-            eprintln!(
-                "------------------------- {order} ------------------------"
-            );
             let mut αs0 =
                 StrongCoupling::builder().order(order).unwrap().build();
             let nf = αs0.nf;
 
             let μ_high = 100_000.;
             let αs_high = αs0.at(μ_high);
-            dbg!(αs_high);
             let μdμ_αs_high = μ_high * d(|μ| αs0.at(μ), μ_high, EP_HIGH);
-            dbg!(μdμ_αs_high);
-            dbg!(μdμ_αs_high - μdμ_αs_high);
             let rge_rhs_high = 2. * β(order, nf, αs_high) * αs_high;
-            dbg!(rge_rhs_high - μdμ_αs_high);
             assert!((μdμ_αs_high - rge_rhs_high).abs() < 2e-13);
 
-            dbg!(αs0.at(1.));
             αs0.evolve(μ_high);
 
             let μ_low = 1.;
             let αs_low = αs0.at(μ_low);
-            dbg!(αs_low);
             let μdμ_αs_low = μ_low * d(|μ| αs0.at(μ), μ_low, EP_LOW);
-            dbg!(μdμ_αs_low);
-            dbg!(μdμ_αs_low - μdμ_αs_low);
             let rge_rhs_low = 2. * β(order, nf, αs_low) * αs_low;
-            dbg!(rge_rhs_low);
-            dbg!(rge_rhs_low - μdμ_αs_low);
             assert!((μdμ_αs_low - rge_rhs_low).abs() < 3e-12);
         }
     }
