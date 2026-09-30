@@ -182,7 +182,7 @@ impl StrongCoupling {
                     eps: self.precision.into(),
                     max_iter: self.max_iter,
                 };
-                roots::find_root_brent(
+                roots::find_root_secant(
                     1e-100,
                     1.,
                     |αs| αs_eq(αs, αs0, b, residues, log_μ2, residue_sum_αs0),
