@@ -34,10 +34,13 @@ pub const ALPHA_S_MZ: f64 = 0.1180;
 pub fn α_s(nf: i32, μ: f64) -> f64 {
     let α_s = StrongCoupling::default();
     match nf {
-        3 => α_s.remove(BOTTOM_THRESHOLD).remove(CHARM_THRESHOLD).at(μ),
-        4 => α_s.remove(BOTTOM_THRESHOLD).at(μ),
+        3 => α_s
+            .remove_flavour(BOTTOM_THRESHOLD)
+            .remove_flavour(CHARM_THRESHOLD)
+            .at(μ),
+        4 => α_s.remove_flavour(BOTTOM_THRESHOLD).at(μ),
         5 => α_s.at(μ),
-        6 => α_s.add(TOP_THRESHOLD).at(μ),
+        6 => α_s.add_flavour(TOP_THRESHOLD).at(μ),
         _ => {
             panic!("Number nf of flavours is {nf}, must be within 3 <= nf <= 6")
         }
@@ -163,10 +166,10 @@ fn roots4(c: [f64; 5]) -> [Complex64; 4] {
     let sqrt_plus = (-4. * s * s - 2. * p + q / s).sqrt();
     let sqrt_minus = (-4. * s * s - 2. * p - q / s).sqrt();
     let mut roots = [Complex64::ZERO; 4];
-    roots[0] = (-b / (4. * a) - s + 1. / 2. * sqrt_plus).into();
-    roots[1] = (-b / (4. * a) - s - 1. / 2. * sqrt_plus).into();
-    roots[2] = (-b / (4. * a) + s + 1. / 2. * sqrt_minus).into();
-    roots[3] = (-b / (4. * a) + s - 1. / 2. * sqrt_minus).into();
+    roots[0] = -b / (4. * a) - s + 1. / 2. * sqrt_plus;
+    roots[1] = -b / (4. * a) - s - 1. / 2. * sqrt_plus;
+    roots[2] = -b / (4. * a) + s + 1. / 2. * sqrt_minus;
+    roots[3] = -b / (4. * a) + s - 1. / 2. * sqrt_minus;
     roots
 }
 
@@ -266,7 +269,7 @@ impl StrongCoupling {
     }
 
     /// Evolve to the given threshold and remove the quark flavour from the theory.
-    pub fn remove(mut self, to_remove: Threshold) -> Self {
+    pub fn remove_flavour(mut self, to_remove: Threshold) -> Self {
         let Threshold { m, scheme, μ } = to_remove;
         self = self.evolve(*μ);
         let log_μ2_m2 = 2. * (self.μ / m).ln();
@@ -278,7 +281,7 @@ impl StrongCoupling {
     }
 
     /// Evolve to the given threshold and add the quark flavour from the theory.
-    pub fn add(mut self, to_add: Threshold) -> Self {
+    pub fn add_flavour(mut self, to_add: Threshold) -> Self {
         let Threshold { m, scheme, μ } = to_add;
         self = self.evolve(*μ);
         let log_μ2_m2 = 2. * (self.μ / m).ln();
@@ -423,7 +426,7 @@ mod tests {
     #[test]
     fn test_decouple_os() {
         let mt = OrderedFloat(175.);
-        let α_s_nf6 = α_s_tst().add(Threshold {
+        let α_s_nf6 = α_s_tst().add_flavour(Threshold {
             m: mt,
             scheme: OS,
             μ: mt,
@@ -431,7 +434,7 @@ mod tests {
         assert_eq!(α_s_nf6.nf, 6);
         assert_eq!(α_s_nf6.at_μ0(), 0.10782666678927451);
 
-        let α_s_nf4 = α_s_tst().remove(Threshold {
+        let α_s_nf4 = α_s_tst().remove_flavour(Threshold {
             m: MB_OS,
             scheme: OS,
             μ: MB_OS * 2.,
@@ -449,7 +452,7 @@ mod tests {
             .order(1)
             .unwrap()
             .build();
-        let α_s_nf6 = α_s_tst.clone().add(Threshold {
+        let α_s_nf6 = α_s_tst.clone().add_flavour(Threshold {
             m: mt,
             scheme: OS,
             μ: mt,
@@ -457,7 +460,7 @@ mod tests {
         assert_eq!(α_s_nf6.nf, 6);
         assert_eq!(α_s_nf6.at_μ0(), 0.10820815172148068);
 
-        let α_s_nf4 = α_s_tst.remove(Threshold {
+        let α_s_nf4 = α_s_tst.remove_flavour(Threshold {
             m: MB_OS,
             scheme: OS,
             μ: MB_OS * 2.,
@@ -469,7 +472,7 @@ mod tests {
     #[test]
     fn test_decouple_ms() {
         let mb_10 = 3.610;
-        let α_s_nf4 = α_s_tst().remove(Threshold {
+        let α_s_nf4 = α_s_tst().remove_flavour(Threshold {
             m: mb_10.into(),
             scheme: MS,
             μ: 10.into(),
@@ -481,7 +484,7 @@ mod tests {
     #[test]
     fn test_decouple_si() {
         let mb_mb = OrderedFloat(4.163);
-        let α_s_nf4 = α_s_tst().remove(Threshold {
+        let α_s_nf4 = α_s_tst().remove_flavour(Threshold {
             m: mb_mb,
             scheme: SI,
             μ: mb_mb * 2.,
@@ -498,23 +501,23 @@ mod tests {
 
         let α_s = StrongCoupling::default();
         let α_s_mz = α_s
-            .add(TOP_THRESHOLD)
-            .remove(TOP_THRESHOLD)
-            .remove(BOTTOM_THRESHOLD)
-            .remove(CHARM_THRESHOLD)
-            .add(CHARM_THRESHOLD)
-            .add(BOTTOM_THRESHOLD)
+            .add_flavour(TOP_THRESHOLD)
+            .remove_flavour(TOP_THRESHOLD)
+            .remove_flavour(BOTTOM_THRESHOLD)
+            .remove_flavour(CHARM_THRESHOLD)
+            .add_flavour(CHARM_THRESHOLD)
+            .add_flavour(BOTTOM_THRESHOLD)
             .at(MZ);
         assert!((α_s_mz - ALPHA_S_MZ).abs() < 1e-4);
 
         let α_s = StrongCoupling::default();
         let α_s_mz = α_s
-            .remove(BOTTOM_THRESHOLD)
-            .remove(CHARM_THRESHOLD)
-            .add(CHARM_THRESHOLD)
-            .add(BOTTOM_THRESHOLD)
-            .add(TOP_THRESHOLD)
-            .remove(TOP_THRESHOLD)
+            .remove_flavour(BOTTOM_THRESHOLD)
+            .remove_flavour(CHARM_THRESHOLD)
+            .add_flavour(CHARM_THRESHOLD)
+            .add_flavour(BOTTOM_THRESHOLD)
+            .add_flavour(TOP_THRESHOLD)
+            .remove_flavour(TOP_THRESHOLD)
             .at(MZ);
         assert!((α_s_mz - ALPHA_S_MZ).abs() < 1e-4);
     }

@@ -30,7 +30,7 @@ const ZERO_ZETA_COEFF_TABLE: ZetaCoeffTable =
     [[[0.; MAX_LOG_POW + 1]; MAX_NF_POW + 1]; MAX_LOOP_ORDER + 1];
 
 const fn max_nf_pow(order: usize) -> usize {
-    if order > 2 { order - 2 } else { 0 }
+    order.saturating_sub(2)
 }
 
 const fn max_log_pow(order: usize, nf_pow: usize) -> usize {
@@ -39,7 +39,9 @@ const fn max_log_pow(order: usize, nf_pow: usize) -> usize {
 
 // coefficients of zeta_alpha_s
 
+#[allow(clippy::excessive_precision)]
 const T54_3: f64 = -8445.8046390310298;
+#[allow(clippy::excessive_precision)]
 const T62_2: f64 = -4553.4004372195263;
 
 const DELTA_OS_4_NF0: f64 = -2287952896065241. / 43342154956800.
