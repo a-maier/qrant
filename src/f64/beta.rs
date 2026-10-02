@@ -1,10 +1,11 @@
 use std::f64::consts::PI;
 
-use super::colour::{C_A, C_F, D_44_AA, D_44_AF, D_44_FF, N_A, T_F};
+use super::{
+    colour::{C_A, C_F, D_44_AA, D_44_AF, D_44_FF, N_A, T_F},
+    constants::{ZETA_3, ZETA_4, ZETA_5},
+};
 
-pub(crate) const ZETA_3: f64 = 1.202056903159594285399738161511449990765;
-pub(crate) const ZETA_4: f64 = PI * PI * PI * PI / 90.;
-pub(crate) const ZETA_5: f64 = 1.036927755143369926331365486457034168057;
+use const_for::const_for;
 
 // beta = - sum beta_ij nf^j as^(i+1)
 // as = alpha_s/pi
@@ -171,7 +172,11 @@ pub(crate) const BETA_44: f64 = T_F
 /// Loop order to which the QCD β function is implemented.
 pub const MAX_LOOP_ORDER: usize = 5;
 
-pub(crate) const BETA_COEFFS: [[f64; MAX_LOOP_ORDER]; MAX_LOOP_ORDER] = [
+/// Coefficients of the QCD β function
+///
+/// `BETA_COEFF[as_pow][nf_pow]` is the coefficient of
+/// `(α_s/π)^as_pow * nf^nf_pow`
+pub const BETA_COEFF: [[f64; MAX_LOOP_ORDER]; MAX_LOOP_ORDER] = [
     [BETA_00, BETA_01, 0., 0., 0.],
     [BETA_10, BETA_11, 0., 0., 0.],
     [BETA_20, BETA_21, BETA_22, 0., 0.],
@@ -180,21 +185,19 @@ pub(crate) const BETA_COEFFS: [[f64; MAX_LOOP_ORDER]; MAX_LOOP_ORDER] = [
 ];
 
 const fn max_nf_pow(order: usize) -> usize {
-    if order < 2 { 1 } else { order - 1 }
+    if order == 0 { 1 } else { order }
 }
 
 /// Perturbative coefficient of the QCD β function.
 ///
 /// The coefficients are defined by β = -Σ βi (α_s/π)^(i+1).
 pub const fn βi(i: usize, nf: i32) -> f64 {
-    let beta_coeff = &BETA_COEFFS[i];
-    let mut nf_coeff = max_nf_pow(i);
-    let mut res = beta_coeff[nf_coeff];
-    while nf_coeff > 0 {
-        res *= nf as f64;
-        nf_coeff -= 1;
-        res += beta_coeff[nf_coeff];
-    }
+    let beta_coeff = &BETA_COEFF[i];
+    let max_nf_pow = max_nf_pow(i);
+    let mut res = beta_coeff[max_nf_pow];
+    const_for! { nf_pow in (0..max_nf_pow).rev() => {
+        res = res.mul_add(nf as f64, beta_coeff[nf_pow]);
+    }}
     res
 }
 
@@ -203,12 +206,63 @@ pub const fn β(order: usize, nf: i32, α_s: f64) -> f64 {
     if order == 0 {
         return 0.;
     }
-    let mut i = order - 1;
-    let mut res = -βi(i, nf) * (α_s / PI);
-    while i > 0 {
-        i -= 1;
-        res -= βi(i, nf);
-        res *= α_s / PI;
+    let i = order - 1;
+    let α_s_π = α_s / PI;
+    let mut res = -βi(i, nf);
+    const_for! { i in (0..i).rev() => {
+        res = res.mul_add(α_s_π, -βi(i, nf));
+    }}
+    α_s_π * res
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn βi_nf3() {
+        const NF: i32 = 3;
+        const EP: f64 = 1e-13;
+        assert!((βi(0, NF) - 2.25).abs() < EP);
+        assert!((βi(1, NF) - 4.).abs() < EP);
+        assert!(
+            (βi(2, NF) - 10.05989583333333333333333333333333333333).abs() < EP
+        );
+        assert!(
+            (βi(3, NF) - 47.22803957345199692022899769740179243706).abs() < EP
+        );
+        assert!(
+            (βi(4, NF) - 127.3221746284614255273481830954551696777).abs() < EP
+        );
     }
-    res
+
+    #[test]
+    fn βi_nf5() {
+        const NF: i32 = 5;
+        const EP: f64 = 1e-12;
+        assert!(
+            (βi(0, NF)
+                - 1.916666666666666666666666666666666666666666666666666666667)
+                .abs()
+                < EP
+        );
+        assert!(
+            (βi(1, NF)
+                - 2.416666666666666666666666666666666666666666666666666666667)
+                .abs()
+                < EP
+        );
+        assert!(
+            (βi(2, NF)
+                - 2.826678240740740740740740740740740740740740740740740740741)
+                .abs()
+                < EP
+        );
+        assert!(
+            (βi(3, NF) - 18.85217315933944027193522194150208642692).abs() < EP
+        );
+        assert!(
+            (βi(4, NF) - 15.10801977348336322393151931464672088623).abs() < EP
+        );
+    }
 }

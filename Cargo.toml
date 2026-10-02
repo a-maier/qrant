@@ -12,6 +12,8 @@ repository = "https://github.com/a-maier/qrant"
 
 [dependencies]
 bon = "3.10.1"
+const_for = "0.1.6"
 num-complex = "0.4.6"
 ordered-float = "5.5.0"
+pastey = "0.2.3"
 roots = "0.0.8"
