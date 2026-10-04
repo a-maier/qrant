@@ -1,4 +1,4 @@
-use std::{f64::consts::PI, fmt::Display, ops::RangeInclusive};
+use std::{f64::consts::PI, fmt::Display, ops::RangeInclusive, sync::LazyLock};
 
 use bon::Builder;
 use num_complex::{Complex, Complex64};
@@ -19,7 +19,18 @@ pub const MZ: f64 = 91.1879;
 /// Value of the strong coupling at the scale of the Z boson mass
 pub const ALPHA_S_MZ: f64 = 0.1180;
 
-/// The value of the coupling constant at the given scale in QCD with `nf` active flavours
+static ALPHA_S_NF5: LazyLock<StrongCoupling> =
+    LazyLock::new(StrongCoupling::default);
+
+static ALPHA_S_NF4: LazyLock<StrongCoupling> =
+    LazyLock::new(|| ALPHA_S_NF5.remove_flavour(BOTTOM_THRESHOLD));
+static ALPHA_S_NF3: LazyLock<StrongCoupling> =
+    LazyLock::new(|| ALPHA_S_NF4.remove_flavour(CHARM_THRESHOLD));
+
+static ALPHA_S_NF6: LazyLock<StrongCoupling> =
+    LazyLock::new(|| ALPHA_S_NF5.add_flavour(TOP_THRESHOLD));
+
+/// The value of the coupling constant at the scale `μ` in QCD with `nf` active flavours
 ///
 /// The number of flavours has to be in the range `3 <= nf <= 6`.
 /// If it is different from 5, the corresponding lighter or
@@ -34,18 +45,30 @@ pub const ALPHA_S_MZ: f64 = 0.1180;
 pub fn α_s(nf: i32, μ: f64) -> f64 {
     let α_s = StrongCoupling::default();
     match nf {
-        3 => α_s
-            .remove_flavour(BOTTOM_THRESHOLD)
-            .remove_flavour(CHARM_THRESHOLD)
-            .at(μ),
-        4 => α_s.remove_flavour(BOTTOM_THRESHOLD).at(μ),
-        5 => α_s.at(μ),
-        6 => α_s.add_flavour(TOP_THRESHOLD).at(μ),
+        3 => α_s_nf3(μ),
+        4 => α_s_nf4(μ),
+        5 => α_s_nf5(μ),
+        6 => α_s_nf6(μ),
         _ => {
             panic!("Number nf of flavours is {nf}, must be within 3 <= nf <= 6")
         }
     }
 }
+
+macro_rules! impl_α_s_nf {
+    ($($nf:literal), *) => {
+        $(
+            pastey::paste!{
+                /// The value of the coupling constant at the scale `μ` in QCD with a fixed number of active flavours
+                pub fn [<α_s_nf $nf>](μ: f64) -> f64 {
+                    [<ALPHA_S_NF $nf>].at(μ)
+                }
+            }
+        )*
+    };
+}
+
+impl_α_s_nf!(3, 4, 5, 6);
 
 /// The strong coupling
 #[derive(Builder, Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
