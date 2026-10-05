@@ -20,15 +20,19 @@ pub const MZ: f64 = 91.1879;
 /// Value of the strong coupling at the scale of the Z boson mass
 pub const ALPHA_S_MZ: f64 = 0.1180;
 
-static ALPHA_S_NF5: LazyLock<StrongCoupling> =
+/// Default strong coupling in the five-flavour theory
+pub static ALPHA_S_NF5: LazyLock<StrongCoupling> =
     LazyLock::new(StrongCoupling::default);
 
-static ALPHA_S_NF4: LazyLock<StrongCoupling> =
+/// Default strong coupling in the four-flavour theory
+pub static ALPHA_S_NF4: LazyLock<StrongCoupling> =
     LazyLock::new(|| ALPHA_S_NF5.remove_flavour(BOTTOM_THRESHOLD));
-static ALPHA_S_NF3: LazyLock<StrongCoupling> =
+/// Default strong coupling in the three-flavour theory
+pub static ALPHA_S_NF3: LazyLock<StrongCoupling> =
     LazyLock::new(|| ALPHA_S_NF4.remove_flavour(CHARM_THRESHOLD));
 
-static ALPHA_S_NF6: LazyLock<StrongCoupling> =
+/// Default strong coupling in the six-flavour theory
+pub static ALPHA_S_NF6: LazyLock<StrongCoupling> =
     LazyLock::new(|| ALPHA_S_NF5.add_flavour(TOP_THRESHOLD));
 
 /// The value of the coupling constant at the scale `μ` in QCD with `nf` active flavours
@@ -327,6 +331,16 @@ impl StrongCoupling {
     /// Value at reference scale
     pub fn at_μ_0(&self) -> f64 {
         *self.value
+    }
+
+    /// Numeric precision of evolution
+    pub fn precision(&self) -> f64 {
+        *self.precision
+    }
+
+    /// Maximum number of iterations for finding α_s(μ)
+    pub fn max_iter(&self) -> usize {
+        self.max_iter
     }
 
     fn update_b(&mut self) {

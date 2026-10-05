@@ -4,6 +4,7 @@ use bon::bon;
 use num_complex::{Complex, Complex64};
 use num_traits::MulAddAssign;
 use ordered_float::OrderedFloat;
+use roots::SimpleConvergency;
 
 use crate::complex::C64;
 
@@ -26,13 +27,28 @@ pub struct QcdParameters {
 impl QcdParameters {
     #[builder]
     pub fn new(
-        #[builder(into, default = OrderedFloat(ALPHA_S_MZ))] α_s: F64,
-        #[builder(into)] m: F64,
-        #[builder(into, default = OrderedFloat(MZ))] μ: F64,
-        #[builder(default = 5)] nf: i32,
+        /// Initial value of strong coupling constant
+        #[builder(into, default = OrderedFloat(ALPHA_S_MZ))]
+        α_s: F64,
+        /// Initial mass value in GeV
+        #[builder(into)]
+        m: F64,
+        /// Initial scale in GeV
+        #[builder(into, default = OrderedFloat(MZ))]
+        μ: F64,
+        /// Initial number of active quark flavours.
+        #[builder(default = 5)]
+        nf: i32,
+        /// Loop order used for evolution.
+        ///
+        /// The argument must not be larger than [MAX_LOOP_ORDER].
         order: usize,
-        #[builder(into, default = OrderedFloat(1e-16))] precision: F64,
-        #[builder(default = 30)] max_iter: usize,
+        /// Numerical precision for the evolution.
+        #[builder(into, default = OrderedFloat(1e-16))]
+        precision: F64,
+        /// Maximum number of iterations used in the evolution.
+        #[builder(default = 30)]
+        max_iter: usize,
     ) -> Result<Self, OutOfRange<usize>> {
         let α_s = StrongCoupling::builder()
             .value(α_s)
@@ -57,6 +73,15 @@ pub struct ParameterValues {
 }
 
 impl QcdParameters {
+    pub fn with_coupling(α_s: StrongCoupling, m: impl Into<F64>) -> Self {
+        let m_residues = get_residues(α_s);
+        Self {
+            α_s,
+            m: m.into(),
+            m_residues,
+        }
+    }
+
     /// Return the parameter values at the given scale in GeV.
     pub fn at(&self, μ: f64) -> ParameterValues {
         assert_eq!(MAX_LOOP_ORDER, 5);
@@ -107,6 +132,22 @@ impl QcdParameters {
         self
     }
 
+    /// Get the scale-invariant mass m(m) in GeV
+    pub fn m_of_m(&self) -> f64 {
+        let mut convergency = SimpleConvergency {
+            eps: self.precision(),
+            max_iter: self.max_iter(),
+        };
+        let m = *self.m;
+        roots::find_root_secant(
+            m,
+            self.m(m),
+            |m| self.m(m) - m,
+            &mut convergency,
+        )
+        .expect("Failed to find scale-invariant mass")
+    }
+
     /// Return the mass value at the given scale in GeV.
     pub fn m(&self, μ: f64) -> f64 {
         *self.at(μ).m
@@ -145,6 +186,16 @@ impl QcdParameters {
     /// Coupling at reference scale
     pub fn α_s_0(&self) -> f64 {
         self.α_s.at_μ_0()
+    }
+
+    /// Numeric precision of evolution
+    pub fn precision(&self) -> f64 {
+        self.α_s.precision()
+    }
+
+    /// Maximum number of iterations for finding the parameter values
+    pub fn max_iter(&self) -> usize {
+        self.α_s.max_iter()
     }
 }
 
@@ -195,7 +246,7 @@ fn gen_g_arr(α_s: StrongCoupling) -> [f64; MAX_LOOP_ORDER] {
 }
 #[cfg(test)]
 mod tests {
-    use crate::gamma_m::γ_m;
+    use crate::{alpha_s::ALPHA_S_NF4, gamma_m::γ_m};
 
     use super::*;
 
@@ -232,5 +283,12 @@ mod tests {
             let rge_rhs_low = 2. * γ_m(order, nf, *α_s) * *m;
             assert!((μdμ_mb_low - rge_rhs_low).abs() < 3e-12);
         }
+    }
+
+    #[test]
+    fn test_si() {
+        let alpha_s = ALPHA_S_NF4.evolve(3.);
+        let param = QcdParameters::with_coupling(alpha_s, 0.986);
+        assert_eq!(param.m_of_m(), 1.2722136772876158);
     }
 }
