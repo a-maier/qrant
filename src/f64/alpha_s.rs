@@ -43,7 +43,6 @@ static ALPHA_S_NF6: LazyLock<StrongCoupling> =
 ///
 /// Panics if the number of flavours is outside the range `3 <= nf <= 6`.
 pub fn α_s(nf: i32, μ: f64) -> f64 {
-    let α_s = StrongCoupling::default();
     match nf {
         3 => α_s_nf3(μ),
         4 => α_s_nf4(μ),
