@@ -82,7 +82,6 @@ const DELTA_OS_4_NF2: f64 =
 /// `(α_s/π)^as_pow * nf^nf_pow * log(μ^2/m^2)^log_pow`.
 pub const ZETA_OS_COEFF: ZetaCoeffTable = {
     let mut res = ZERO_ZETA_COEFF_TABLE;
-    // res[αs power][nf power][log power]
     res[0][0][0] = 1.;
     res[1][0][1] = -1. / 6.;
     res[2][0][0] = -7. / 24.;
