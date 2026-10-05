@@ -136,6 +136,7 @@ dependencies = [
  "bon",
  "const_for",
  "num-complex",
+ "num-traits",
  "ordered-float",
  "pastey",
  "roots",

@@ -2,6 +2,7 @@ use std::{f64::consts::PI, fmt::Display, ops::RangeInclusive, sync::LazyLock};
 
 use bon::Builder;
 use num_complex::{Complex, Complex64};
+use num_traits::ops::mul_add::MulAddAssign;
 use ordered_float::OrderedFloat;
 use roots::SimpleConvergency;
 
@@ -201,26 +202,20 @@ fn get_residues(b: &[F64]) -> [[C64; 2]; MAX_LOOP_ORDER - 1] {
     let mut res = [[C64::from(0.); 2]; MAX_LOOP_ORDER - 1];
     for (n, α_s_i) in roots.into_iter().enumerate().take(b.len() - 1) {
         let mut b1_num = Complex::from(0.);
-        let mut α_s_i_pow = Complex::from(1.);
-        for bi in &b[1..] {
-            b1_num += bi.0 * α_s_i_pow;
-            α_s_i_pow *= α_s_i;
+        for bi in b[1..].iter().rev() {
+            b1_num.mul_add_assign(α_s_i, (**bi).into());
         }
 
         let mut b0_num = Complex::from(0.);
-        let mut α_s_i_pow = Complex::from(1.);
-        for bi in &b[2..] {
-            b0_num += bi.0 * α_s_i_pow;
-            α_s_i_pow *= α_s_i;
+        for bi in b[2..].iter().rev() {
+            b0_num.mul_add_assign(α_s_i, (**bi).into());
         }
 
         let num = b[1].0 * b1_num - b[0].0 * b0_num;
 
         let mut den = Complex::from(0.);
-        let mut α_s_i_pow = Complex::from(1.);
-        for (n, bi) in b.iter().enumerate().skip(1) {
-            den += (n as f64) * bi.0 * α_s_i_pow;
-            α_s_i_pow *= α_s_i;
+        for (n, bi) in b.iter().map(|b| **b).enumerate().skip(1).rev() {
+            den.mul_add_assign(α_s_i, ((n as f64) * bi).into());
         }
 
         res[n][0] = α_s_i.into();
@@ -247,11 +242,11 @@ impl StrongCoupling {
         let μ0 = f64::from(self.μ);
         let log_μ2 = (μ / μ0).ln() * 2.;
         let b = self.b.map(f64::from);
-        let residues = self.residues.map(|r| r.map(Complex::from));
         match self.order {
             0 => α_s_0,
             1 => α_s_0 / (1. + α_s_0 * b[0] * log_μ2),
             o => {
+                let residues = self.residues.map(|r| r.map(Complex::from));
                 let b = &b[..o];
                 let residues = &residues[..o - 1];
                 let residue_sum_α_s_0 = residue_sum(α_s_0, residues, b);
@@ -512,7 +507,7 @@ mod tests {
             μ: mb_mb * 2.,
         });
         assert_eq!(α_s_nf4.nf, 4);
-        assert_eq!(α_s_nf4.at(5.), 0.21342879414639607);
+        assert_eq!(α_s_nf4.at(5.), 0.2134287941463961);
     }
 
     #[test]
