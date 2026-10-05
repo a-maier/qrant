@@ -75,10 +75,10 @@ impl_α_s_nf!(3, 4, 5, 6);
 pub struct StrongCoupling {
     /// Initial value of the strong coupling.
     #[builder(into, default = OrderedFloat(ALPHA_S_MZ))]
-    value: F64,
+    pub(crate) value: F64,
     /// Scale of the initial strong coupling value in GeV.
     #[builder(into, default = OrderedFloat(MZ))]
-    μ: F64,
+    pub(crate) μ: F64,
     /// Initial number of active quark flavours.
     #[builder(default = 5)]
     nf: i32,
@@ -274,7 +274,7 @@ impl StrongCoupling {
         }
     }
 
-    /// Evolve to the given scale in GeV.
+    /// Evolve to the given scale in GeV, setting `μ0 = μ`
     ///
     /// All further calls to [evolve](Self::evolve) and [at](Self::at)
     /// will start from the new scale.
@@ -320,12 +320,12 @@ impl StrongCoupling {
     }
 
     /// Reference scale
-    pub fn μ0(&self) -> f64 {
+    pub fn μ_0(&self) -> f64 {
         *self.μ
     }
 
     /// Value at reference scale
-    pub fn at_μ0(&self) -> f64 {
+    pub fn at_μ_0(&self) -> f64 {
         *self.value
     }
 
@@ -339,6 +339,14 @@ impl StrongCoupling {
         } = self;
         *b = gen_b_arr(*nf, *order);
         *residues = get_residues(&b[..*order]);
+    }
+
+    pub(crate) fn b(&self) -> [OrderedFloat<f64>; MAX_LOOP_ORDER] {
+        self.b
+    }
+
+    pub(crate) fn residues(&self) -> [[C64; 2]; MAX_LOOP_ORDER - 1] {
+        self.residues
     }
 }
 
@@ -449,7 +457,7 @@ mod tests {
             μ: mt,
         });
         assert_eq!(α_s_nf6.nf, 6);
-        assert_eq!(α_s_nf6.at_μ0(), 0.10782666678927451);
+        assert_eq!(α_s_nf6.at_μ_0(), 0.10782666678927451);
 
         let α_s_nf4 = α_s_tst().remove_flavour(Threshold {
             m: MB_OS,
@@ -475,7 +483,7 @@ mod tests {
             μ: mt,
         });
         assert_eq!(α_s_nf6.nf, 6);
-        assert_eq!(α_s_nf6.at_μ0(), 0.10820815172148068);
+        assert_eq!(α_s_nf6.at_μ_0(), 0.10820815172148068);
 
         let α_s_nf4 = α_s_tst.remove_flavour(Threshold {
             m: MB_OS,

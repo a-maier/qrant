@@ -4,6 +4,8 @@ pub(crate) const ZETA_2: f64 = PI * PI / 6.;
 pub(crate) const ZETA_3: f64 = 1.202056903159594285399738161511449990765;
 pub(crate) const ZETA_4: f64 = PI * PI * PI * PI / 90.;
 pub(crate) const ZETA_5: f64 = 1.036927755143369926331365486457034168057;
+pub(crate) const ZETA_6: f64 = 1.017343061984449139714517929790920527902;
+pub(crate) const ZETA_7: f64 = 1.008349277381922826839797549849796759600;
 
 pub(crate) const LN2_2: f64 = LN_2 * LN_2;
 pub(crate) const LN3_2: f64 = LN2_2 * LN_2;
