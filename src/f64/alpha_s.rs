@@ -5,7 +5,7 @@ use num_complex::{Complex, Complex64};
 use ordered_float::OrderedFloat;
 use roots::SimpleConvergency;
 
-use crate::{beta::βi, complex::C64, zeta_alpha_s::ζ_α_s};
+use crate::{beta::β_i, complex::C64, zeta_alpha_s::ζ_α_s};
 
 use super::{
     F64,
@@ -233,7 +233,7 @@ fn gen_b_arr(nf: i32, order: usize) -> [F64; MAX_LOOP_ORDER] {
     let mut b = [OrderedFloat(0.); MAX_LOOP_ORDER];
     let mut pi_pow = 1. / PI;
     for (i, b) in b[..order].iter_mut().enumerate() {
-        *b = (βi(i, nf) * pi_pow).into();
+        *b = (β_i(i, nf) * pi_pow).into();
         pi_pow /= PI;
     }
     b

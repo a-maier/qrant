@@ -174,7 +174,7 @@ pub const MAX_LOOP_ORDER: usize = 5;
 
 /// Coefficients of the QCD β function
 ///
-/// `BETA_COEFF[as_pow][nf_pow]` is the coefficient of
+/// `BETA_COEFF[as_pow][nf_pow]` is *minus* the coefficient of
 /// `(α_s/π)^as_pow * nf^nf_pow`
 pub const BETA_COEFF: [[f64; MAX_LOOP_ORDER]; MAX_LOOP_ORDER] = [
     [BETA_00, BETA_01, 0., 0., 0.],
@@ -191,7 +191,7 @@ const fn max_nf_pow(order: usize) -> usize {
 /// Perturbative coefficient of the QCD β function.
 ///
 /// The coefficients are defined by β = -Σ βi (α_s/π)^(i+1).
-pub const fn βi(i: usize, nf: i32) -> f64 {
+pub const fn β_i(i: usize, nf: i32) -> f64 {
     let beta_coeff = &BETA_COEFF[i];
     let max_nf_pow = max_nf_pow(i);
     let mut res = beta_coeff[max_nf_pow];
@@ -208,9 +208,9 @@ pub const fn β(order: usize, nf: i32, α_s: f64) -> f64 {
     }
     let i = order - 1;
     let α_s_π = α_s / PI;
-    let mut res = -βi(i, nf);
+    let mut res = -β_i(i, nf);
     const_for! { i in (0..i).rev() => {
-        res = res.mul_add(α_s_π, -βi(i, nf));
+        res = res.mul_add(α_s_π, -β_i(i, nf));
     }}
     α_s_π * res
 }
@@ -223,16 +223,16 @@ mod tests {
     fn βi_nf3() {
         const NF: i32 = 3;
         const EP: f64 = 1e-13;
-        assert!((βi(0, NF) - 2.25).abs() < EP);
-        assert!((βi(1, NF) - 4.).abs() < EP);
+        assert!((β_i(0, NF) - 2.25).abs() < EP);
+        assert!((β_i(1, NF) - 4.).abs() < EP);
         assert!(
-            (βi(2, NF) - 10.05989583333333333333333333333333333333).abs() < EP
+            (β_i(2, NF) - 10.05989583333333333333333333333333333333).abs() < EP
         );
         assert!(
-            (βi(3, NF) - 47.22803957345199692022899769740179243706).abs() < EP
+            (β_i(3, NF) - 47.22803957345199692022899769740179243706).abs() < EP
         );
         assert!(
-            (βi(4, NF) - 127.3221746284614255273481830954551696777).abs() < EP
+            (β_i(4, NF) - 127.3221746284614255273481830954551696777).abs() < EP
         );
     }
 
@@ -241,28 +241,28 @@ mod tests {
         const NF: i32 = 5;
         const EP: f64 = 1e-12;
         assert!(
-            (βi(0, NF)
+            (β_i(0, NF)
                 - 1.916666666666666666666666666666666666666666666666666666667)
                 .abs()
                 < EP
         );
         assert!(
-            (βi(1, NF)
+            (β_i(1, NF)
                 - 2.416666666666666666666666666666666666666666666666666666667)
                 .abs()
                 < EP
         );
         assert!(
-            (βi(2, NF)
+            (β_i(2, NF)
                 - 2.826678240740740740740740740740740740740740740740740740741)
                 .abs()
                 < EP
         );
         assert!(
-            (βi(3, NF) - 18.85217315933944027193522194150208642692).abs() < EP
+            (β_i(3, NF) - 18.85217315933944027193522194150208642692).abs() < EP
         );
         assert!(
-            (βi(4, NF) - 15.10801977348336322393151931464672088623).abs() < EP
+            (β_i(4, NF) - 15.10801977348336322393151931464672088623).abs() < EP
         );
     }
 }
