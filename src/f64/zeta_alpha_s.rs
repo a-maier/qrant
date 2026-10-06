@@ -78,9 +78,9 @@ const DELTA_OS_4_NF2: f64 =
 
 /// Coefficients of ζ_α_s in the on-shell scheme
 ///
-/// `ZETA_OS_COEFF[as_pow][nf_pow][log_pow]` is the coefficient of
+/// `ZETA_ALPHA_OS_COEFF[as_pow][nf_pow][log_pow]` is the coefficient of
 /// `(α_s/π)^as_pow * nf^nf_pow * log(μ^2/m^2)^log_pow`.
-pub const ZETA_OS_COEFF: ZetaCoeffTable = {
+pub const ZETA_ALPHA_OS_COEFF: ZetaCoeffTable = {
     let mut res = ZERO_ZETA_COEFF_TABLE;
     res[0][0][0] = 1.;
     res[1][0][1] = -1. / 6.;
@@ -145,9 +145,9 @@ const DELTA_MS_4_NF2: f64 = -271883. / 4478976. + 167. / 5184. * ZETA_3;
 
 /// Coefficients of ζ_α_s in the MSbar scheme
 ///
-/// `ZETA_MS_COEFF[as_pow][nf_pow][log_pow]` is the coefficient of
+/// `ZETA_ALPHA_MS_COEFF[as_pow][nf_pow][log_pow]` is the coefficient of
 /// `(α_s/π)^as_pow * nf^nf_pow * log(μ^2/m^2)^log_pow`.
-pub const ZETA_MS_COEFF: ZetaCoeffTable = {
+pub const ZETA_ALPHA_MS_COEFF: ZetaCoeffTable = {
     let mut res = ZERO_ZETA_COEFF_TABLE;
     res[0][0][0] = 1.;
     res[1][0][1] = -1. / 6.;
@@ -179,9 +179,9 @@ pub const ZETA_MS_COEFF: ZetaCoeffTable = {
 
 /// Coefficients of ζ_α_s for the scheme-invariant mass m(m)
 ///
-/// `ZETA_SI_COEFF[as_pow][nf_pow][log_pow]` is the coefficient of
+/// `ZETA_ALPHA_SI_COEFF[as_pow][nf_pow][log_pow]` is the coefficient of
 /// `(α_s/π)^as_pow * nf^nf_pow * log(μ^2/m^2)^log_pow`.
-pub const ZETA_SI_COEFF: ZetaCoeffTable = {
+pub const ZETA_ALPHA_SI_COEFF: ZetaCoeffTable = {
     let mut res = ZERO_ZETA_COEFF_TABLE;
     res[0][0][0] = 1.;
     res[1][0][1] = -1. / 6.;
@@ -211,9 +211,9 @@ pub const ZETA_SI_COEFF: ZetaCoeffTable = {
 
 /// Coefficients of ζ_α_s^-1 in the on-shell scheme
 ///
-/// `ZETA_OS_INV_COEFF[as_pow][nf_pow][log_pow]` is the coefficient of
+/// `ZETA_ALPHA_OS_INV_COEFF[as_pow][nf_pow][log_pow]` is the coefficient of
 /// `(α_s/π)^as_pow * nf^nf_pow * log(μ^2/m^2)^log_pow`.
-pub const ZETA_OS_INV_COEFF: ZetaCoeffTable = {
+pub const ZETA_ALPHA_OS_INV_COEFF: ZetaCoeffTable = {
     let mut res = ZERO_ZETA_COEFF_TABLE;
     res[0][0][0] = 1.;
     res[1][0][1] = 1. / 6.;
@@ -253,9 +253,9 @@ pub const ZETA_OS_INV_COEFF: ZetaCoeffTable = {
 
 /// Coefficients of ζ_α_s^-1 in the MSbar scheme
 ///
-/// `ZETA_MS_INV_COEFF[as_pow][nf_pow][log_pow]` is the coefficient of
+/// `ZETA_ALPHA_MS_INV_COEFF[as_pow][nf_pow][log_pow]` is the coefficient of
 /// `(α_s/π)^as_pow * nf^nf_pow * log(μ^2/m^2)^log_pow`.
-pub const ZETA_MS_INV_COEFF: ZetaCoeffTable = {
+pub const ZETA_ALPHA_MS_INV_COEFF: ZetaCoeffTable = {
     let mut res = ZERO_ZETA_COEFF_TABLE;
     res[0][0][0] = 1.;
     res[1][0][1] = 1. / 6.;
@@ -288,9 +288,9 @@ pub const ZETA_MS_INV_COEFF: ZetaCoeffTable = {
 
 /// Coefficients of ζ_α_s^-1 for a scheme-invariant mass m(m)
 ///
-/// `ZETA_SI_INV_COEFF[as_pow][nf_pow][log_pow]` is the coefficient of
+/// `ZETA_ALPHA_SI_INV_COEFF[as_pow][nf_pow][log_pow]` is the coefficient of
 /// `(α_s/π)^as_pow * nf^nf_pow * log(μ^2/m^2)^log_pow`.
-pub const ZETA_SI_INV_COEFF: ZetaCoeffTable = {
+pub const ZETA_ALPHA_SI_INV_COEFF: ZetaCoeffTable = {
     let mut res = ZERO_ZETA_COEFF_TABLE;
     res[0][0][0] = 1.;
     res[1][0][1] = 1. / 6.;
@@ -373,7 +373,7 @@ macro_rules! impl_ζ_α_s {
                 let α_s_π = α_s_nf / PI;
                 let mut res = 0f64;
                 const_for! { order in (0..order).rev() => {
-                    let zeta_coeff = &[<ZETA_ $scheme _COEFF>][order];
+                    let zeta_coeff = &[<ZETA_ALPHA_ $scheme _COEFF>][order];
                     let max_nf_pow = max_nf_pow(order);
                     let mut order_res = 0f64;
                     const_for! { nf_pow in (0..max_nf_pow + 1).rev() => {
