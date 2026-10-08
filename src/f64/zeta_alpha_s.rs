@@ -38,7 +38,7 @@ const fn max_log_pow(order: usize, nf_pow: usize) -> usize {
 }
 
 // coefficients of zeta_alpha_s
-
+// TODO: general colour factors
 #[allow(clippy::excessive_precision)]
 const T54_3: f64 = -8445.8046390310298;
 #[allow(clippy::excessive_precision)]
@@ -342,7 +342,8 @@ pub const fn ζ_α_s(
 
 /// Inverse decoupling constant for strong coupling
 ///
-/// The decoupling constant is defined by α_s^(nf+1) = ζ_α_s^-1 * α_s^(nf).
+/// The inverse decoupling constant is defined by
+/// α_s^(nf+1) = ζ_α_s^-1 * α_s^(nf).
 /// That is, it allows to determine the strong coupling in the
 /// nf+1 flavour theory from the strong coupling in QCD with
 /// nf flavours.
