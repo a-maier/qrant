@@ -361,12 +361,12 @@ impl StrongCoupling {
         *self.value
     }
 
-    /// Alias for [μ_0]
+    /// Alias for [μ_0](Self::μ_0)
     pub fn mu_0(&self) -> f64 {
         self.μ_0()
     }
 
-    /// Alias for [at_μ_0]
+    /// Alias for [at_μ_0](Self::at_μ_0)
     pub fn at_mu_0(&self) -> f64 {
         self.at_μ_0()
     }

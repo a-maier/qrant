@@ -192,7 +192,7 @@ impl QcdParameters {
         *self.at(μ).α_s
     }
 
-    /// Alias for [α_s]
+    /// Alias for [α_s](Self::α_s)
     pub fn alpha_s(&self, μ: f64) -> f64 {
         self.α_s(μ)
     }
@@ -217,7 +217,7 @@ impl QcdParameters {
         self.α_s.μ_0()
     }
 
-    /// Alias for [μ_0]
+    /// Alias for [μ_0](Self::μ_0)
     pub fn mu_0(&self) -> f64 {
         self.μ_0()
     }
@@ -232,7 +232,7 @@ impl QcdParameters {
         self.α_s.at_μ_0()
     }
 
-    /// Alias for [α_s_0]
+    /// Alias for [α_s_0](Self::α_s_0)
     pub fn alpha_s_0(&self) -> f64 {
         self.α_s_0()
     }
