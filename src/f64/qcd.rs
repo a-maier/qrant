@@ -70,8 +70,8 @@ impl QcdParameters {
 /// A set of QCD parameter values, i.e. strong coupling and quark mass
 #[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct ParameterValues {
-    α_s: F64,
-    m: F64,
+    pub α_s: F64,
+    pub m: F64,
 }
 
 impl QcdParameters {
