@@ -59,6 +59,11 @@ pub fn α_s(nf: i32, μ: f64) -> f64 {
     }
 }
 
+/// Alias for [α_s]
+pub fn alpha_s(nf: i32, μ: f64) -> f64 {
+    α_s(nf, μ)
+}
+
 macro_rules! impl_α_s_nf {
     ($($nf:literal), *) => {
         $(
@@ -66,6 +71,10 @@ macro_rules! impl_α_s_nf {
                 /// The value of the coupling constant at the scale `μ` in QCD with a fixed number of active flavours
                 pub fn [<α_s_nf $nf>](μ: f64) -> f64 {
                     [<ALPHA_S_NF $nf>].at(μ)
+                }
+
+                pub fn [<alpha_s_nf $nf>](μ: f64) -> f64 {
+                    [<α_s_nf $nf>](μ)
                 }
             }
         )*
@@ -294,11 +303,15 @@ impl StrongCoupling {
 
     /// Evolve to the given threshold and remove the quark flavour from the theory.
     pub fn remove_flavour(self, to_remove: Threshold) -> Self {
-        self.evolve(*to_remove.μ).remove_flavour_here(to_remove)
+        self.evolve(*to_remove.scale).remove_flavour_here(to_remove)
     }
 
     pub(crate) fn remove_flavour_here(mut self, to_remove: Threshold) -> Self {
-        let Threshold { m, scheme, μ } = to_remove;
+        let Threshold {
+            m,
+            scheme,
+            scale: μ,
+        } = to_remove;
         assert_eq!(self.μ, μ);
         let log_μ2_m2 = 2. * (μ / m).ln();
         self.value *=
@@ -310,11 +323,15 @@ impl StrongCoupling {
 
     /// Evolve to the given threshold and add the quark flavour from the theory.
     pub fn add_flavour(self, to_add: Threshold) -> Self {
-        self.evolve(*to_add.μ).add_flavour_here(to_add)
+        self.evolve(*to_add.scale).add_flavour_here(to_add)
     }
 
     pub(crate) fn add_flavour_here(mut self, to_add: Threshold) -> Self {
-        let Threshold { m, scheme, μ } = to_add;
+        let Threshold {
+            m,
+            scheme,
+            scale: μ,
+        } = to_add;
         assert_eq!(self.μ, μ);
         let log_μ2_m2 = 2. * (μ / m).ln();
         self.value *=
@@ -342,6 +359,16 @@ impl StrongCoupling {
     /// Value at reference scale
     pub fn at_μ_0(&self) -> f64 {
         *self.value
+    }
+
+    /// Alias for [μ_0]
+    pub fn mu_0(&self) -> f64 {
+        self.μ_0()
+    }
+
+    /// Alias for [at_μ_0]
+    pub fn at_mu_0(&self) -> f64 {
+        self.at_μ_0()
     }
 
     /// Numeric precision of evolution
@@ -481,7 +508,7 @@ mod tests {
         let α_s_nf6 = α_s_tst().add_flavour(Threshold {
             m: mt,
             scheme: OS,
-            μ: mt,
+            scale: mt,
         });
         assert_eq!(α_s_nf6.nf, 6);
         assert_abs_diff_eq!(α_s_nf6.at_μ_0(), 0.10782666678927451);
@@ -489,7 +516,7 @@ mod tests {
         let α_s_nf4 = α_s_tst().remove_flavour(Threshold {
             m: MB_OS,
             scheme: OS,
-            μ: MB_OS * 2.,
+            scale: MB_OS * 2.,
         });
         assert_eq!(α_s_nf4.nf, 4);
         assert_abs_diff_eq!(α_s_nf4.at(5.), 0.21334916179052535);
@@ -507,7 +534,7 @@ mod tests {
         let α_s_nf6 = α_s_tst.clone().add_flavour(Threshold {
             m: mt,
             scheme: OS,
-            μ: mt,
+            scale: mt,
         });
         assert_eq!(α_s_nf6.nf, 6);
         assert_abs_diff_eq!(α_s_nf6.at_μ_0(), 0.10820815172148068);
@@ -515,7 +542,7 @@ mod tests {
         let α_s_nf4 = α_s_tst.remove_flavour(Threshold {
             m: MB_OS,
             scheme: OS,
-            μ: MB_OS * 2.,
+            scale: MB_OS * 2.,
         });
         assert_eq!(α_s_nf4.nf, 4);
         assert_abs_diff_eq!(α_s_nf4.at(5.), 0.20677069643701884);
@@ -527,7 +554,7 @@ mod tests {
         let α_s_nf4 = α_s_tst().remove_flavour(Threshold {
             m: mb_10.into(),
             scheme: MS,
-            μ: 10.into(),
+            scale: 10.into(),
         });
         assert_eq!(α_s_nf4.nf, 4);
         assert_abs_diff_eq!(α_s_nf4.at(5.), 0.21339618753543466);
@@ -539,7 +566,7 @@ mod tests {
         let α_s_nf4 = α_s_tst().remove_flavour(Threshold {
             m: mb_mb,
             scheme: SI,
-            μ: mb_mb * 2.,
+            scale: mb_mb * 2.,
         });
         assert_eq!(α_s_nf4.nf, 4);
         assert_abs_diff_eq!(α_s_nf4.at(5.), 0.2134287941463961);

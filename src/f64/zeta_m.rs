@@ -765,6 +765,28 @@ pub const fn ζ_m_inv(
     }
 }
 
+/// Alias for [ζ_m]
+pub const fn zeta_m(
+    scheme: MassScheme,
+    α_s_nf: f64,
+    nf: i32,
+    log_μ2_m2: f64,
+    order: usize,
+) -> f64 {
+    ζ_m(scheme, α_s_nf, nf, log_μ2_m2, order)
+}
+
+/// Alias for [ζ_m_inv]
+pub const fn zeta_m_inv(
+    scheme: MassScheme,
+    α_s_nf: f64,
+    nf: i32,
+    log_μ2_m2: f64,
+    order: usize,
+) -> f64 {
+    ζ_m_inv(scheme, α_s_nf, nf, log_μ2_m2, order)
+}
+
 macro_rules! impl_ζ_m {
     ($scheme:ident) => {
         paste! {
@@ -795,6 +817,15 @@ macro_rules! impl_ζ_m {
                     res = res.mul_add(α_s_π, order_res);
                 }}
                 1. + α_s_π*α_s_π*res
+            }
+
+            pub const fn [<zeta_m_ $scheme:lower>](
+                α_s_nf: f64,
+                nf: i32,
+                log_μ2_m2: f64,
+                order: usize,
+            ) -> f64 {
+                [<ζ_m_ $scheme:lower>](α_s_nf, nf, log_μ2_m2, order)
             }
         }
     };

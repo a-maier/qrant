@@ -215,6 +215,16 @@ pub const fn β(order: usize, nf: i32, α_s: f64) -> f64 {
     α_s_π * res
 }
 
+/// Alias for [β_i]
+pub const fn beta_i(i: usize, nf: i32) -> f64 {
+    β_i(i, nf)
+}
+
+/// Alias for [β]
+pub const fn beta(order: usize, nf: i32, α_s: f64) -> f64 {
+    β(order, nf, α_s)
+}
+
 #[cfg(test)]
 mod tests {
     use approx::assert_abs_diff_eq;

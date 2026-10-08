@@ -224,6 +224,16 @@ pub const fn γ_m(order: usize, nf: i32, α_s: f64) -> f64 {
     α_s_π * res
 }
 
+/// Alias for [γ_m_i]
+pub const fn gamma_m_i(i: usize, nf: i32) -> f64 {
+    γ_m_i(i, nf)
+}
+
+/// Alias for [γ_m]
+pub const fn gamma_m(order: usize, nf: i32, α_s: f64) -> f64 {
+    γ_m(order, nf, α_s)
+}
+
 #[cfg(test)]
 mod tests {
     use approx::assert_abs_diff_eq;

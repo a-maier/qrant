@@ -136,7 +136,11 @@ impl QcdParameters {
 
     /// Evolve to the given threshold and remove the quark flavour from the theory.
     pub fn remove_flavour(mut self, to_remove: Threshold) -> Self {
-        let Threshold { m, scheme, μ } = to_remove;
+        let Threshold {
+            m,
+            scheme,
+            scale: μ,
+        } = to_remove;
         self = self.evolve(*μ);
         let log_μ2_m2 = 2. * (μ / m).ln();
         self.m *=
@@ -148,7 +152,11 @@ impl QcdParameters {
 
     /// Evolve to the given threshold and add the quark flavour to the theory.
     pub fn add_flavour(mut self, to_add: Threshold) -> Self {
-        let Threshold { m, scheme, μ } = to_add;
+        let Threshold {
+            m,
+            scheme,
+            scale: μ,
+        } = to_add;
         self = self.evolve(*μ);
         let log_μ2_m2 = 2. * (μ / m).ln();
         self.m *=
@@ -184,6 +192,11 @@ impl QcdParameters {
         *self.at(μ).α_s
     }
 
+    /// Alias for [α_s]
+    pub fn alpha_s(&self, μ: f64) -> f64 {
+        self.α_s(μ)
+    }
+
     /// Get the strong coupling
     pub fn coupling(&self) -> StrongCoupling {
         self.α_s
@@ -204,6 +217,11 @@ impl QcdParameters {
         self.α_s.μ_0()
     }
 
+    /// Alias for [μ_0]
+    pub fn mu_0(&self) -> f64 {
+        self.μ_0()
+    }
+
     /// Mass at reference scale
     pub fn m_0(&self) -> f64 {
         *self.m
@@ -212,6 +230,11 @@ impl QcdParameters {
     /// Coupling at reference scale
     pub fn α_s_0(&self) -> f64 {
         self.α_s.at_μ_0()
+    }
+
+    /// Alias for [α_s_0]
+    pub fn alpha_s_0(&self) -> f64 {
+        self.α_s_0()
     }
 
     /// Numeric precision of evolution
@@ -286,7 +309,7 @@ mod tests {
     const BOTTOM_THR_OS: Threshold = Threshold {
         m: OrderedFloat(MB_OS),
         scheme: OS,
-        μ: OrderedFloat(2. * MB_OS),
+        scale: OrderedFloat(2. * MB_OS),
     };
 
     fn d(mut f: impl FnMut(f64) -> f64, x: f64, ε: f64) -> f64 {
@@ -346,7 +369,7 @@ mod tests {
             .remove_flavour(Threshold {
                 m: MB_OS.into(),
                 scheme: OS,
-                μ: (2. * MB_OS).into(),
+                scale: (2. * MB_OS).into(),
             })
             .evolve(3.);
         let qcd4 = QcdParameters::with_coupling(alpha_s, 0.986);
@@ -358,7 +381,7 @@ mod tests {
         let qcd6 = qcd5.add_flavour(Threshold {
             m: mt,
             scheme,
-            μ: mt,
+            scale: mt,
         });
         assert_abs_diff_eq!(qcd5.m(10.), 0.7985475114937312);
         assert_abs_diff_eq!(qcd5.m(150.), 0.6027221368611795);
@@ -371,12 +394,12 @@ mod tests {
         let qcd5 = qcd4.add_flavour(Threshold {
             m: mb,
             scheme,
-            μ: μb,
+            scale: μb,
         });
         let qcd6 = qcd5.add_flavour(Threshold {
             m: mt,
             scheme,
-            μ: mt,
+            scale: mt,
         });
         assert_abs_diff_eq!(qcd5.m(10.), 0.7984056151654841);
         assert_abs_diff_eq!(qcd5.m(150.), 0.6026063076605886);
@@ -388,12 +411,12 @@ mod tests {
         let qcd5 = qcd4.add_flavour(Threshold {
             m: mb,
             scheme,
-            μ: mb * 2.,
+            scale: mb * 2.,
         });
         let qcd6 = qcd5.add_flavour(Threshold {
             m: mt,
             scheme,
-            μ: mt,
+            scale: mt,
         });
         assert_abs_diff_eq!(qcd5.m(10.), 0.798473534516608);
         assert_abs_diff_eq!(qcd5.m(150.), 0.6026837622852785);
