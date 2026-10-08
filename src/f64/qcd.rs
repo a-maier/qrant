@@ -89,7 +89,7 @@ impl QcdParameters {
         assert_eq!(MAX_LOOP_ORDER, 5);
         let order = self.α_s.order();
         let m_0 = f64::from(self.m);
-        let μ0 = f64::from(self.α_s.μ_0());
+        let μ0 = self.α_s.μ_0();
         let α_s = self.α_s.at(μ);
         let α_s_0 = self.α_s.at(μ0);
         let nf = self.α_s.nf();
@@ -128,8 +128,8 @@ impl QcdParameters {
     /// will start from the new scale.
     pub fn evolve(mut self, μ: f64) -> QcdParameters {
         let ParameterValues { α_s, m } = self.at(μ);
-        self.m = m.into();
-        self.α_s.value = α_s.into();
+        self.m = m;
+        self.α_s.value = α_s;
         self.α_s.μ = μ.into();
         self
     }

@@ -18,8 +18,11 @@ pub(crate) const PI2: f64 = PI * PI;
 pub(crate) const PI4: f64 = PI2 * PI2;
 pub(crate) const PI6: f64 = PI4 * PI2;
 
+#[allow(clippy::excessive_precision)]
 pub(crate) const B4: f64 = -1.762800087073770864061897634679818807215;
 // C4 = 24*Li_4(1/2) + log^4(2) - pi^2*log^2(2)
+#[allow(clippy::excessive_precision)]
 pub(crate) const C4: f64 = 7.908451398072941071188189589256658841231;
 // C5 = -360*Li_5(1/2) + 3*log^5(2) - 5*pi^2*log^3(2)
+#[allow(clippy::excessive_precision)]
 pub(crate) const C5: f64 = -198.9783082886512628182933723717652048993;
