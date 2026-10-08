@@ -870,10 +870,26 @@ mod tests {
             -0.009259259259259259,
             epsilon = EP
         );
-        assert_abs_diff_eq!(ZETA_M_OS_COEFF[4][0][0], 1.783112700960487, epsilon = EP);
-        assert_abs_diff_eq!(ZETA_M_OS_COEFF[4][0][1], 3.325894126200277, epsilon = EP);
-        assert_abs_diff_eq!(ZETA_M_OS_COEFF[4][0][2], 7.176614089719983, epsilon = EP);
-        assert_abs_diff_eq!(ZETA_M_OS_COEFF[4][0][3], 2.328317901234568, epsilon = EP);
+        assert_abs_diff_eq!(
+            ZETA_M_OS_COEFF[4][0][0],
+            1.783112700960487,
+            epsilon = EP
+        );
+        assert_abs_diff_eq!(
+            ZETA_M_OS_COEFF[4][0][1],
+            3.325894126200277,
+            epsilon = EP
+        );
+        assert_abs_diff_eq!(
+            ZETA_M_OS_COEFF[4][0][2],
+            7.176614089719983,
+            epsilon = EP
+        );
+        assert_abs_diff_eq!(
+            ZETA_M_OS_COEFF[4][0][3],
+            2.328317901234568,
+            epsilon = EP
+        );
         assert_abs_diff_eq!(
             ZETA_M_OS_COEFF[4][0][4],
             0.30063657407407407,
@@ -949,7 +965,11 @@ mod tests {
             0.08333333333333333,
             epsilon = EP
         );
-        assert_abs_diff_eq!(ZETA_M_MS_COEFF[3][0][0], 1.822899132856635, epsilon = EP);
+        assert_abs_diff_eq!(
+            ZETA_M_MS_COEFF[3][0][0],
+            1.822899132856635,
+            epsilon = EP
+        );
         assert_abs_diff_eq!(
             ZETA_M_MS_COEFF[3][0][1],
             -0.9990134686823778,
@@ -981,7 +1001,11 @@ mod tests {
             -0.009259259259259259,
             epsilon = EP
         );
-        assert_abs_diff_eq!(ZETA_M_MS_COEFF[4][0][0], 8.371928509821231, epsilon = EP);
+        assert_abs_diff_eq!(
+            ZETA_M_MS_COEFF[4][0][0],
+            8.371928509821231,
+            epsilon = EP
+        );
         assert_abs_diff_eq!(
             ZETA_M_MS_COEFF[4][0][1],
             -0.9588086344447362,
@@ -1072,7 +1096,11 @@ mod tests {
             0.08333333333333333,
             epsilon = EP
         );
-        assert_abs_diff_eq!(ZETA_M_SI_COEFF[3][0][0], 1.822899132856635, epsilon = EP);
+        assert_abs_diff_eq!(
+            ZETA_M_SI_COEFF[3][0][0],
+            1.822899132856635,
+            epsilon = EP
+        );
         assert_abs_diff_eq!(
             ZETA_M_SI_COEFF[3][0][1],
             -1.2767912464601556,
@@ -1104,14 +1132,26 @@ mod tests {
             -0.009259259259259259,
             epsilon = EP
         );
-        assert_abs_diff_eq!(ZETA_M_SI_COEFF[4][0][0], 8.371928509821231, epsilon = EP);
+        assert_abs_diff_eq!(
+            ZETA_M_SI_COEFF[4][0][0],
+            8.371928509821231,
+            epsilon = EP
+        );
         assert_abs_diff_eq!(
             ZETA_M_SI_COEFF[4][0][1],
             -4.125817053290973,
             epsilon = EP
         );
-        assert_abs_diff_eq!(ZETA_M_SI_COEFF[4][0][2], 4.806243719349613, epsilon = EP);
-        assert_abs_diff_eq!(ZETA_M_SI_COEFF[4][0][3], 2.328317901234568, epsilon = EP);
+        assert_abs_diff_eq!(
+            ZETA_M_SI_COEFF[4][0][2],
+            4.806243719349613,
+            epsilon = EP
+        );
+        assert_abs_diff_eq!(
+            ZETA_M_SI_COEFF[4][0][3],
+            2.328317901234568,
+            epsilon = EP
+        );
         assert_abs_diff_eq!(
             ZETA_M_SI_COEFF[4][0][4],
             0.30063657407407407,

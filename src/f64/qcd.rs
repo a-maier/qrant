@@ -274,7 +274,10 @@ fn gen_g_arr(α_s: StrongCoupling) -> [f64; MAX_LOOP_ORDER] {
 mod tests {
     use approx::assert_abs_diff_eq;
 
-    use crate::{MassScheme::{MS, OS, SI}, gamma_m::γ_m};
+    use crate::{
+        MassScheme::{MS, OS, SI},
+        gamma_m::γ_m,
+    };
 
     use super::*;
 
@@ -365,7 +368,11 @@ mod tests {
         let mb = 3.610.into();
         let μb = 10.0.into();
         let mt = 162.481.into();
-        let qcd5 = qcd4.add_flavour(Threshold { m: mb, scheme, μ: μb });
+        let qcd5 = qcd4.add_flavour(Threshold {
+            m: mb,
+            scheme,
+            μ: μb,
+        });
         let qcd6 = qcd5.add_flavour(Threshold {
             m: mt,
             scheme,
@@ -378,7 +385,11 @@ mod tests {
         let scheme = SI;
         let mb = 4.163.into();
         let mt = 163.253.into();
-        let qcd5 = qcd4.add_flavour(Threshold { m: mb, scheme, μ: mb*2. });
+        let qcd5 = qcd4.add_flavour(Threshold {
+            m: mb,
+            scheme,
+            μ: mb * 2.,
+        });
         let qcd6 = qcd5.add_flavour(Threshold {
             m: mt,
             scheme,

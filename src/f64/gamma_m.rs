@@ -235,7 +235,11 @@ mod tests {
         const NF: i32 = 3;
         const EP: f64 = 1e-12;
         assert_abs_diff_eq!(γ_m_i(0, NF), 1., epsilon = EP);
-        assert_abs_diff_eq!(γ_m_i(1, NF), 3.791666666666666666666666, epsilon = EP);
+        assert_abs_diff_eq!(
+            γ_m_i(1, NF),
+            3.791666666666666666666666,
+            epsilon = EP
+        );
         assert_abs_diff_eq!(γ_m_i(2, NF), 12.420204964323236, epsilon = EP);
         assert_abs_diff_eq!(γ_m_i(3, NF), 44.26290846573344, epsilon = EP);
         assert_abs_diff_eq!(γ_m_i(4, NF), 198.90657900228448479, epsilon = EP);
