@@ -226,27 +226,29 @@ pub const fn γ_m(order: usize, nf: i32, α_s: f64) -> f64 {
 
 #[cfg(test)]
 mod tests {
+    use approx::assert_abs_diff_eq;
+
     use super::*;
 
     #[test]
     fn γ_m_i_nf3() {
         const NF: i32 = 3;
         const EP: f64 = 1e-12;
-        assert!((γ_m_i(0, NF) - 1.).abs() < EP);
-        assert!((γ_m_i(1, NF) - 3.791666666666666666666666).abs() < EP);
-        assert!((γ_m_i(2, NF) - 12.420204964323236).abs() < EP);
-        assert!((γ_m_i(3, NF) - 44.26290846573344).abs() < EP);
-        assert!((γ_m_i(4, NF) - 198.90657900228448479).abs() < EP);
+        assert_abs_diff_eq!(γ_m_i(0, NF), 1., epsilon = EP);
+        assert_abs_diff_eq!(γ_m_i(1, NF), 3.791666666666666666666666, epsilon = EP);
+        assert_abs_diff_eq!(γ_m_i(2, NF), 12.420204964323236, epsilon = EP);
+        assert_abs_diff_eq!(γ_m_i(3, NF), 44.26290846573344, epsilon = EP);
+        assert_abs_diff_eq!(γ_m_i(4, NF), 198.90657900228448479, epsilon = EP);
     }
 
     #[test]
     fn γ_m_i_nf5() {
         const NF: i32 = 5;
         const EP: f64 = 1e-12;
-        assert!((γ_m_i(0, NF) - 1.).abs() < EP);
-        assert!((γ_m_i(1, NF) - 3.513888888888889).abs() < EP);
-        assert!((γ_m_i(2, NF) - 7.419863212143666).abs() < EP);
-        assert!((γ_m_i(3, NF) - 11.034321242068067).abs() < EP);
-        assert!((γ_m_i(4, NF) - 41.820456935958403891).abs() < EP);
+        assert_abs_diff_eq!(γ_m_i(0, NF), 1., epsilon = EP);
+        assert_abs_diff_eq!(γ_m_i(1, NF), 3.513888888888889, epsilon = EP);
+        assert_abs_diff_eq!(γ_m_i(2, NF), 7.419863212143666, epsilon = EP);
+        assert_abs_diff_eq!(γ_m_i(3, NF), 11.034321242068067, epsilon = EP);
+        assert_abs_diff_eq!(γ_m_i(4, NF), 41.820456935958403891, epsilon = EP);
     }
 }

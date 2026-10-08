@@ -414,6 +414,8 @@ impl<T: Display> Display for OutOfRange<T> {
 
 #[cfg(test)]
 mod tests {
+    use approx::assert_abs_diff_eq;
+
     use crate::{
         MassScheme::{MS, OS, SI},
         beta::β,
@@ -438,7 +440,7 @@ mod tests {
             let α_s_high = α_s_0.at(μ_high);
             let μdμ_α_s_high = μ_high * d(|μ| α_s_0.at(μ), μ_high, EP_HIGH);
             let rge_rhs_high = 2. * β(order, nf, α_s_high) * α_s_high;
-            assert!((μdμ_α_s_high - rge_rhs_high).abs() < 2e-13);
+            assert_abs_diff_eq!(μdμ_α_s_high, rge_rhs_high, epsilon = 2e-13);
 
             let α_s_0 = α_s_0.evolve(μ_high);
 
@@ -446,7 +448,7 @@ mod tests {
             let α_s_low = α_s_0.at(μ_low);
             let μdμ_α_s_low = μ_low * d(|μ| α_s_0.at(μ), μ_low, EP_LOW);
             let rge_rhs_low = 2. * β(order, nf, α_s_low) * α_s_low;
-            assert!((μdμ_α_s_low - rge_rhs_low).abs() < 3e-12);
+            assert_abs_diff_eq!(μdμ_α_s_low, rge_rhs_low, epsilon = 3e-12);
         }
     }
 
@@ -471,7 +473,7 @@ mod tests {
             μ: mt,
         });
         assert_eq!(α_s_nf6.nf, 6);
-        assert_eq!(α_s_nf6.at_μ_0(), 0.10782666678927451);
+        assert_abs_diff_eq!(α_s_nf6.at_μ_0(), 0.10782666678927451);
 
         let α_s_nf4 = α_s_tst().remove_flavour(Threshold {
             m: MB_OS,
@@ -479,7 +481,7 @@ mod tests {
             μ: MB_OS * 2.,
         });
         assert_eq!(α_s_nf4.nf, 4);
-        assert_eq!(α_s_nf4.at(5.), 0.21334916179052535);
+        assert_abs_diff_eq!(α_s_nf4.at(5.), 0.21334916179052535);
     }
 
     #[test]
@@ -497,7 +499,7 @@ mod tests {
             μ: mt,
         });
         assert_eq!(α_s_nf6.nf, 6);
-        assert_eq!(α_s_nf6.at_μ_0(), 0.10820815172148068);
+        assert_abs_diff_eq!(α_s_nf6.at_μ_0(), 0.10820815172148068);
 
         let α_s_nf4 = α_s_tst.remove_flavour(Threshold {
             m: MB_OS,
@@ -505,7 +507,7 @@ mod tests {
             μ: MB_OS * 2.,
         });
         assert_eq!(α_s_nf4.nf, 4);
-        assert_eq!(α_s_nf4.at(5.), 0.20677069643701884);
+        assert_abs_diff_eq!(α_s_nf4.at(5.), 0.20677069643701884);
     }
 
     #[test]
@@ -517,7 +519,7 @@ mod tests {
             μ: 10.into(),
         });
         assert_eq!(α_s_nf4.nf, 4);
-        assert_eq!(α_s_nf4.at(5.), 0.21339618753543466);
+        assert_abs_diff_eq!(α_s_nf4.at(5.), 0.21339618753543466);
     }
 
     #[test]
@@ -529,14 +531,14 @@ mod tests {
             μ: mb_mb * 2.,
         });
         assert_eq!(α_s_nf4.nf, 4);
-        assert_eq!(α_s_nf4.at(5.), 0.2134287941463961);
+        assert_abs_diff_eq!(α_s_nf4.at(5.), 0.2134287941463961);
     }
 
     #[test]
     fn test_closure() {
         let α_s = StrongCoupling::default();
         let α_s_mz = α_s.evolve(100_000.).evolve(1.).at(MZ);
-        assert!((α_s_mz - ALPHA_S_MZ).abs() < 1e-16);
+        assert_abs_diff_eq!(α_s_mz, ALPHA_S_MZ, epsilon = 1e-16);
 
         let α_s = StrongCoupling::default();
         let α_s_mz = α_s
@@ -547,7 +549,7 @@ mod tests {
             .add_flavour(CHARM_THRESHOLD)
             .add_flavour(BOTTOM_THRESHOLD)
             .at(MZ);
-        assert!((α_s_mz - ALPHA_S_MZ).abs() < 1e-4);
+        assert_abs_diff_eq!(α_s_mz, ALPHA_S_MZ, epsilon = 1e-4);
 
         let α_s = StrongCoupling::default();
         let α_s_mz = α_s
@@ -558,6 +560,6 @@ mod tests {
             .add_flavour(TOP_THRESHOLD)
             .remove_flavour(TOP_THRESHOLD)
             .at(MZ);
-        assert!((α_s_mz - ALPHA_S_MZ).abs() < 1e-4);
+        assert_abs_diff_eq!(α_s_mz, ALPHA_S_MZ, epsilon = 1e-4);
     }
 }
