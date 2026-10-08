@@ -79,8 +79,8 @@ macro_rules! impl_cmp {
     };
 }
 
-impl_cmp!(f32);
+// impl_cmp!(f32);
 impl_cmp!(f64);
 
-pub(crate) type C32 = OrderedComplex<f32>;
+// pub(crate) type C32 = OrderedComplex<f32>;
 pub(crate) type C64 = OrderedComplex<f64>;
