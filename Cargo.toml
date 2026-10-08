@@ -2,7 +2,7 @@
 name = "qrant"
 version = "0.1.0"
 edition = "2024"
-description = "QCD coupling and mass evolution"
+description = "QCD parameter evolution and decoupling"
 authors = ["Andreas Maier <andreas.maier@ifj.edu.pl>"]
 license = "GPL-3.0-or-later"
 readme = "Readme.md"
