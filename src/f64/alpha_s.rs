@@ -258,9 +258,12 @@ impl StrongCoupling {
                     eps: self.precision.into(),
                     max_iter: self.max_iter,
                 };
+                // using a precomputed approximation saves about 1 iteration
+                // for long-distance running
+                let α_s_nlo = α_s_0 / (1. + α_s_0 * b[0] * log_μ2);
                 roots::find_root_secant(
-                    1e-100,
-                    1.,
+                    1e-10,
+                    α_s_nlo,
                     |α_s| {
                         α_s_eq(
                             α_s,
