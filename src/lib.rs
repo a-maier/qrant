@@ -52,6 +52,12 @@
 //! assert_eq!(α_s, 0.17423377517877828);
 //! assert_eq!(m, 0.800826180563377);
 //! ```
+//!
+//! # Features
+//!
+//! `serde`: Enables serialization of `StrongCoupling` and
+//!          `QcdParameters` objects using
+//!          [serde](https://crates.io/crates/serde).
 mod complex;
 pub mod f64;
 pub mod scheme;

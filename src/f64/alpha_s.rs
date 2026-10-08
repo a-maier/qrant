@@ -84,6 +84,7 @@ macro_rules! impl_α_s_nf {
 impl_α_s_nf!(3, 4, 5, 6);
 
 /// The strong coupling
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Builder, Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct StrongCoupling {
     /// Initial value of the strong coupling.

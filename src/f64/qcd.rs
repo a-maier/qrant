@@ -68,6 +68,7 @@ impl QcdParameters {
 }
 
 /// A set of QCD parameter values, i.e. strong coupling and quark mass
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub struct ParameterValues {
     pub α_s: F64,
