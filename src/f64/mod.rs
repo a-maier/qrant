@@ -5,6 +5,7 @@ pub mod gamma_m;
 pub mod qcd;
 pub mod threshold;
 pub mod zeta_alpha_s;
+pub mod zeta_m;
 
 mod constants;
 

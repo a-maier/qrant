@@ -13,6 +13,8 @@ use super::{
     alpha_s::{ALPHA_S_MZ, MZ, OutOfRange, StrongCoupling},
     beta::{MAX_LOOP_ORDER, β_i},
     gamma_m::γ_m_i,
+    threshold::Threshold,
+    zeta_m::{ζ_m, ζ_m_inv},
 };
 
 /// QCD parameter evolution
@@ -132,6 +134,30 @@ impl QcdParameters {
         self
     }
 
+    /// Evolve to the given threshold and remove the quark flavour from the theory.
+    pub fn remove_flavour(mut self, to_remove: Threshold) -> Self {
+        let Threshold { m, scheme, μ } = to_remove;
+        self = self.evolve(*μ);
+        let log_μ2_m2 = 2. * (μ / m).ln();
+        self.m *=
+            ζ_m(scheme, self.α_s_0(), self.nf(), log_μ2_m2, self.order());
+        self.α_s = self.α_s.remove_flavour_here(to_remove);
+        self.m_residues = get_residues(self.α_s);
+        self
+    }
+
+    /// Evolve to the given threshold and add the quark flavour to the theory.
+    pub fn add_flavour(mut self, to_add: Threshold) -> Self {
+        let Threshold { m, scheme, μ } = to_add;
+        self = self.evolve(*μ);
+        let log_μ2_m2 = 2. * (μ / m).ln();
+        self.m *=
+            ζ_m_inv(scheme, self.α_s_0(), self.nf(), log_μ2_m2, self.order());
+        self.α_s = self.α_s.add_flavour_here(to_add);
+        self.m_residues = get_residues(self.α_s);
+        self
+    }
+
     /// Get the scale-invariant mass m(m) in GeV
     pub fn m_of_m(&self) -> f64 {
         let mut convergency = SimpleConvergency {
@@ -246,9 +272,19 @@ fn gen_g_arr(α_s: StrongCoupling) -> [f64; MAX_LOOP_ORDER] {
 }
 #[cfg(test)]
 mod tests {
-    use crate::{alpha_s::ALPHA_S_NF4, gamma_m::γ_m};
+    use approx::assert_abs_diff_eq;
+
+    use crate::{MassScheme::{MS, OS, SI}, gamma_m::γ_m};
 
     use super::*;
+
+    // don't use global constants to ensure the tests are independent of them
+    const MB_OS: f64 = 4.7;
+    const BOTTOM_THR_OS: Threshold = Threshold {
+        m: OrderedFloat(MB_OS),
+        scheme: OS,
+        μ: OrderedFloat(2. * MB_OS),
+    };
 
     fn d(mut f: impl FnMut(f64) -> f64, x: f64, ε: f64) -> f64 {
         (-f(x + 2. * ε) + 8. * f(x + ε) - 8. * f(x - ε) + f(x - 2. * ε))
@@ -272,8 +308,8 @@ mod tests {
             let μ_high = 100_000.;
             let μdμ_mb_high = μ_high * d(|μ| param.m(μ), μ_high, EP_HIGH);
             let ParameterValues { α_s, m } = param.at(μ_high);
-            let rge_rhs_high = 2. * γ_m(order, nf, dbg!(*α_s)) * dbg!(*m);
-            assert!((μdμ_mb_high - rge_rhs_high).abs() < 3e-12);
+            let rge_rhs_high = 2. * γ_m(order, nf, *α_s) * *m;
+            assert_abs_diff_eq!(μdμ_mb_high, rge_rhs_high, epsilon = 3e-12);
 
             let param = param.evolve(μ_high);
 
@@ -281,14 +317,75 @@ mod tests {
             let μdμ_mb_low = μ_low * d(|μ| param.m(μ), μ_low, EP_LOW);
             let ParameterValues { α_s, m } = param.at(μ_low);
             let rge_rhs_low = 2. * γ_m(order, nf, *α_s) * *m;
-            assert!((μdμ_mb_low - rge_rhs_low).abs() < 3e-12);
+            assert_abs_diff_eq!(μdμ_mb_low, rge_rhs_low, epsilon = 3e-12);
         }
     }
 
     #[test]
     fn test_si() {
-        let alpha_s = ALPHA_S_NF4.evolve(3.);
+        let alpha_s = StrongCoupling::builder()
+            .value(0.118)
+            .nf(5)
+            .μ(91.1879)
+            .build()
+            .remove_flavour(BOTTOM_THR_OS)
+            .evolve(3.);
         let param = QcdParameters::with_coupling(alpha_s, 0.986);
-        assert_eq!(param.m_of_m(), 1.2722136772876158);
+        assert_abs_diff_eq!(param.m_of_m(), 1.2725545232372295);
+    }
+
+    #[test]
+    fn test_decoupling() {
+        let alpha_s = StrongCoupling::builder()
+            .value(0.1184)
+            .μ(91.18)
+            .build()
+            .remove_flavour(Threshold {
+                m: MB_OS.into(),
+                scheme: OS,
+                μ: (2. * MB_OS).into(),
+            })
+            .evolve(3.);
+        let qcd4 = QcdParameters::with_coupling(alpha_s, 0.986);
+        assert_abs_diff_eq!(qcd4.m(7.), 0.8422871248464533);
+
+        let scheme = OS;
+        let mt = 173.into();
+        let qcd5 = qcd4.add_flavour(BOTTOM_THR_OS);
+        let qcd6 = qcd5.add_flavour(Threshold {
+            m: mt,
+            scheme,
+            μ: mt,
+        });
+        assert_abs_diff_eq!(qcd5.m(10.), 0.7985475114937312);
+        assert_abs_diff_eq!(qcd5.m(150.), 0.6027221368611795);
+        assert_abs_diff_eq!(qcd6.m(180.), 0.5940168455560585);
+
+        let scheme = MS;
+        let mb = 3.610.into();
+        let μb = 10.0.into();
+        let mt = 162.481.into();
+        let qcd5 = qcd4.add_flavour(Threshold { m: mb, scheme, μ: μb });
+        let qcd6 = qcd5.add_flavour(Threshold {
+            m: mt,
+            scheme,
+            μ: mt,
+        });
+        assert_abs_diff_eq!(qcd5.m(10.), 0.7984056151654841);
+        assert_abs_diff_eq!(qcd5.m(150.), 0.6026063076605886);
+        assert_abs_diff_eq!(qcd6.m(180.), 0.5939053105997983);
+
+        let scheme = SI;
+        let mb = 4.163.into();
+        let mt = 163.253.into();
+        let qcd5 = qcd4.add_flavour(Threshold { m: mb, scheme, μ: mb*2. });
+        let qcd6 = qcd5.add_flavour(Threshold {
+            m: mt,
+            scheme,
+            μ: mt,
+        });
+        assert_abs_diff_eq!(qcd5.m(10.), 0.798473534516608);
+        assert_abs_diff_eq!(qcd5.m(150.), 0.6026837622852785);
+        assert_abs_diff_eq!(qcd6.m(180.), 0.5939815203063479);
     }
 }

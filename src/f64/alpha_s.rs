@@ -290,10 +290,14 @@ impl StrongCoupling {
     }
 
     /// Evolve to the given threshold and remove the quark flavour from the theory.
-    pub fn remove_flavour(mut self, to_remove: Threshold) -> Self {
+    pub fn remove_flavour(self, to_remove: Threshold) -> Self {
+        self.evolve(*to_remove.μ).remove_flavour_here(to_remove)
+    }
+
+    pub(crate) fn remove_flavour_here(mut self, to_remove: Threshold) -> Self {
         let Threshold { m, scheme, μ } = to_remove;
-        self = self.evolve(*μ);
-        let log_μ2_m2 = 2. * (self.μ / m).ln();
+        assert_eq!(self.μ, μ);
+        let log_μ2_m2 = 2. * (μ / m).ln();
         self.value *=
             ζ_α_s(scheme, *self.value, self.nf, log_μ2_m2, self.order);
         self.nf -= 1;
@@ -302,10 +306,14 @@ impl StrongCoupling {
     }
 
     /// Evolve to the given threshold and add the quark flavour from the theory.
-    pub fn add_flavour(mut self, to_add: Threshold) -> Self {
+    pub fn add_flavour(self, to_add: Threshold) -> Self {
+        self.evolve(*to_add.μ).add_flavour_here(to_add)
+    }
+
+    pub(crate) fn add_flavour_here(mut self, to_add: Threshold) -> Self {
         let Threshold { m, scheme, μ } = to_add;
-        self = self.evolve(*μ);
-        let log_μ2_m2 = 2. * (self.μ / m).ln();
+        assert_eq!(self.μ, μ);
+        let log_μ2_m2 = 2. * (μ / m).ln();
         self.value *=
             ζ_α_s_inv(scheme, *self.value, self.nf, log_μ2_m2, self.order);
         self.nf += 1;
